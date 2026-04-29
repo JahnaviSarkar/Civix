@@ -1,0 +1,32 @@
+<div class="admin-container">
+    <header>
+        <h2>Admin Panel</h2>
+        <button onclick="logout()">Logout</button>
+    </header>
+
+    <section id="complaint-records">
+        <h3>Master Complaint Records</h3>
+        <table id="records-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Citizen</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="admin-table-body">
+                </tbody>
+        </table>
+    </section>
+
+    <div id="verify-modal" style="display:none;">
+        <h4>Verify Crew Work</h4>
+        <img id="work-proof-img" src="" alt="Proof">
+        <form onsubmit="closeCase(event)">
+            <input type="number" id="star-rating" min="1" max="5" placeholder="Stars (1-5)">
+            <textarea id="admin-review" placeholder="Write review for citizen..."></textarea>
+            <button type="submit">Verify & Close Case</button>
+        </form>
+    </div>
+</div>

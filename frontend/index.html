@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Civix — One platform. Three roles. Cleaner cities.</title>
+    <meta name="description" content="Civix unites citizens, field crews, and administrators in a single resolution
+        platform. Report, resolve, verify." />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'
+        %3E%3Crect width='100' height='100' rx='22' fill='%232563EB' /%3E%3Ctext x='50' y='66'
+        font-family='Inter,sans-serif' font-size='56' font-weight='800' fill='white' text-anchor='middle'
+        %3EC%3C/text%3E%3C/svg%3E" />
+    <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+    <div id="root"></div>
+
+    <!-- Top Bar -->
+    <header class="topbar">
+        <div class="container topbar-inner">
+            <a class="brand" href="index.html" data-testid="brand-logo">
+                <span class="brand-mark blue">C</span>
+                Civix
+            </a>
+            <div class="topbar-right">
+                <a class="btn btn-ghost" href="login.html" data-testid="header-signin-link">Sign in</a>
+                <a class="btn btn-primary" href="login.html" data-testid="header-enter-portal">Enter Portal →</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero -->
+    <section class="hero">
+        <div class="container hero-inner">
+            <span class="eyebrow">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2.5">
+                    <path d="M5 12l5 5L20 7" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+                Trusted by 240+ municipalities
+            </span>
+            <h1>One platform. Three roles.<br /><span class="accent">Cleaner cities.</span></h1>
+            <p class="lead">
+                Civix is the operations hub for civic resolution — connecting citizens who report issues, field crews
+                who fix them, and administrators who verify the outcome. All in one composed, accountable workflow.
+            </p>
+            <div class="hero-cta">
+                <a class="btn btn-blue btn-lg" href="login.html" data-testid="hero-enter-portal-button">
+                    Enter Portal
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2.4">
+                        <path d="M5 12h14M13 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                </a>
+                <a class="btn btn-ghost btn-lg" href="#how" data-testid="hero-how-it-works">How it works</a>
+            </div>
+            <div class="hero-meta">
+                <span>SOC 2 ready</span>
+                <span class="divider"></span>
+                <span>99.98% uptime</span>
+                <span class="divider"></span>
+                <span>WCAG 2.2 AA</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Feature grid -->
+    <section class="section" id="how" style="padding-top: 0;">
+        <div class="container">
+            <div style="max-width: 620px; margin-bottom: 40px;">
+                <span class="eyebrow">The Ecosystem</span>
+                <h2 style="margin-top: 14px;">A single thread from report to resolution.</h2>
+                <p style="margin-top: 12px; font-size: 16px;">
+                    Three roles. One source of truth. Each step accountable, timestamped, and verifiable.
+                </p>
+            </div>
+
+            <div class="features">
+                <!-- Report -->
+                <article class="feature" data-testid="feature-report">
+                    <div class="feature-icon">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M4 5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5z"
+                                stroke-linejoin="round" />
+                            <path d="M13 3v5h5" stroke-linejoin="round" />
+                            <path d="M9 13h6M9 17h4" stroke-linecap="round" />
+                        </svg>
+                    </div>
+                    <h3>Report</h3>
+                    <p>Citizens log issues in seconds — geo-tagged, photo-attached, and auto-routed to the right
+                        department.</p>
+                    <span class="role-tag">For Citizens</span>
+                </article>
+
+                <!-- Resolve -->
+                <article class="feature green" data-testid="feature-resolve">
+                    <div class="feature-icon">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M14.7 6.3a4 4 0 0 1 5 5l-9 9-5 1 1-5z" stroke-linejoin="round" />
+                            <path d="M13 7l4 4" stroke-linecap="round" />
+                        </svg>
+                    </div>
+                    <h3>Resolve</h3>
+                    <p>Field crews see prioritised tasks, update status from the field, and close the loop with proof of
+                        work.</p>
+                    <span class="role-tag">For Crews</span>
+                </article>
+
+                <!-- Verify -->
+                <article class="feature amber" data-testid="feature-verify">
+                    <div class="feature-icon">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M12 2l8 4v6c0 5-3.5 9-8 10-4.5-1-8-5-8-10V6z" stroke-linejoin="round" />
+                            <path d="M9 12l2 2 4-4" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                    </div>
+                    <h3>Verify</h3>
+                    <p>Admins audit outcomes, approve closures, and surface trends across departments — all from one
+                        console.</p>
+                    <span class="role-tag">For Admins</span>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container footer-inner">
+            <div class="brand">
+                <span class="brand-mark blue">C</span>
+                Civix
+            </div>
+            <div>© 2026 Civix Labs. Built for resilient cities.</div>
+        </div>
+    </footer>
+</body>
+
+</html>

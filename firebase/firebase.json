@@ -1,0 +1,17 @@
+﻿// File: firebase.json
+{
+  "hosting": {
+    "public": "frontend",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/pages/login.html"
+      }
+    ]
+  }
+}

@@ -1,0 +1,20 @@
+/* File: frontend/css/components.css */
+#loader {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    background: #2e7d32;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+}
+
+.toast {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #388e3c;
+    color: white;
+    padding: 10px 15px;
+    border-radius: 5px;
+}

@@ -1,0 +1,6 @@
+// File: .firebaserc
+{
+  "projects": {
+    "default": "smart-waste-app-5b0ee"
+  }
+}

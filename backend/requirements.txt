@@ -1,0 +1,8 @@
+﻿flask
+firebase-admin
+python-dotenv
+tensorflow
+pillow
+requests
+flask-cors
+gunicorn

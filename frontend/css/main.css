@@ -1,0 +1,76 @@
+/* File: frontend/css/main.css (UPDATED) */
+body {
+    font-family: Arial;
+    background: linear-gradient(to right, #e8f5e9, #c8e6c9);
+}
+
+.login-container {
+    width: 320px;
+    margin: 100px auto;
+    padding: 25px;
+    background: white;
+    border-radius: 10px;
+}
+
+.toggle {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+}
+
+.toggle button {
+    flex: 1;
+    margin: 2px;
+    background: #a5d6a7;
+    border: none;
+    padding: 8px;
+    cursor: pointer;
+}
+
+button {
+    background: #2e7d32;
+    color: white;
+    border: none;
+    padding: 10px;
+    width: 100%;
+}
+/* File: frontend/css/main.css */
+:root {
+    --primary: #2ecc71; /* Smart Green */
+    --secondary: #2c3e50; /* Professional Navy */
+    --bg-light: #f8fafc;
+    --text-dark: #1e293b;
+    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* File: frontend/css/main.css */
+
+body {
+    display: flex; /* This is the magic line */
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    background-color: #f8fafc;
+    font-family: 'Inter', sans-serif;
+}
+
+.side-nav {
+    width: 260px;
+    min-width: 260px;
+    height: 100vh;
+    background: #2c3e50;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem;
+    position: sticky; /* Keeps it on screen while scrolling */
+    top: 0;
+    box-sizing: border-box; /* Prevents padding from breaking width */
+}
+
+.main-content {
+    flex: 1; /* Takes up all remaining width */
+    padding: 3rem;
+    display: flex;
+    flex-direction: column;
+}

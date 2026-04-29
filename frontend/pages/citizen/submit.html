@@ -1,0 +1,73 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Submit Complaint - SNAP CLEAN</title>
+
+  <!-- Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="../../css/main.css">
+  <link rel="stylesheet" href="../../css/forms.css">
+</head>
+
+<body>
+
+  <div class="form-container">
+
+    <!-- Header -->
+    <div class="form-header">
+      <h2>Report Waste Issue</h2>
+      <p>Provide details to help us resolve the issue quickly</p>
+    </div>
+
+    <!-- Form Card -->
+    <div class="form-card">
+
+      <!-- Name -->
+      <div class="form-group">
+        <label>Name</label>
+        <input type="text" id="name" placeholder="Enter your name">
+      </div>
+
+      <!-- Phone -->
+      <div class="form-group">
+        <label>Phone</label>
+        <input type="text" id="phone" placeholder="Enter phone number">
+      </div>
+
+      <!-- Location -->
+      <div class="form-group">
+        <label>Location</label>
+        <input type="text" id="location" placeholder="Auto-detect or enter manually">
+        <button class="btn-secondary" onclick="getLocation()">Use Current Location</button>
+      </div>
+
+      <!-- Description -->
+      <div class="form-group">
+        <label>Description</label>
+        <textarea id="description" rows="4" placeholder="Describe the issue"></textarea>
+      </div>
+
+      <!-- Image Upload -->
+      <div class="form-group">
+        <label>Upload Image</label>
+        <input type="file" id="image">
+      </div>
+
+      <!-- Submit -->
+      <button class="btn-primary full-width" onclick="submitComplaint()">
+        Submit Complaint
+      </button>
+
+    </div>
+
+  </div>
+
+  <script src="../../js/api.js"></script>
+  <script src="../../js/citizen.js"></script>
+
+</body>
+</html>

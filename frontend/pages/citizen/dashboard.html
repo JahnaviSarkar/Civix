@@ -1,0 +1,29 @@
+﻿<head>
+    <link rel="stylesheet" href="../../css/main.css">
+    <link rel="stylesheet" href="../../css/dashboard.css">
+</head>
+<body>
+    <nav class="side-nav">
+        <h3 style="padding: 0 1rem; color: var(--primary);">SMART WASTE</h3>
+        <button class="nav-item active">My Complaints</button>
+        <button class="nav-item">New Complaint</button>
+        <button class="nav-item" onclick="location.href='profile.html'">Profile</button>
+        <button class="nav-item logout-btn" onclick="logout()">Logout</button>
+    </nav>
+
+    <main class="main-content">
+        <h2>Welcome Back, Citizen</h2>
+        
+        <div class="card-grid" id="complaints-container">
+            <div class="complaint-card">
+                <div style="display:flex; justify-content: space-between;">
+                    <h4>Clogged Drain - Sector 4</h4>
+                    <span class="status-badge status-pending">Pending</span>
+                </div>
+                <p style="color: #64748b;">Reported on April 27, 2026</p>
+            </div>
+        </div>
+    </main>
+    
+    <script src="../../js/citizen.js"></script>
+</body>

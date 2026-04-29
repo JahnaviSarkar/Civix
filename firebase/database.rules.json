@@ -1,0 +1,22 @@
+﻿{
+  "rules": {
+    "complaints": {
+      ".read":  "auth != null",
+      ".write": "auth != null"
+    },
+    "assignments": {
+      ".read":  "auth != null && auth.token.role === 'admin'",
+      ".write": "auth != null && auth.token.role === 'admin'"
+    },
+    "notifications": {
+      "": {
+        ".read":  "auth != null && auth.uid === ",
+        ".write": "auth != null"
+      }
+    },
+    "audit_logs": {
+      ".read":  "auth != null && auth.token.role === 'admin'",
+      ".write": "auth != null"
+    }
+  }
+}

@@ -1,0 +1,9 @@
+﻿{
+  "name": "Smart Waste Monitor",
+  "short_name": "WasteApp",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1D9E75",
+  "icons": []
+}

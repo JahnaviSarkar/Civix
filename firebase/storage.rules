@@ -1,0 +1,12 @@
+﻿// File: firebase/storage.rules
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /complaints/{complaintId}/{allPaths=**} {
+      // Allow Crew to upload "After" photos
+      allow write: if request.auth != null;
+      // Allow everyone authenticated to view the proof
+      allow read: if request.auth != null;
+    }
+  }
+}

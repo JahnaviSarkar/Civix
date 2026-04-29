@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Crew Dashboard — Civix</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'
+        %3E%3Crect width='100' height='100' rx='22' fill='%232563EB' /%3E%3Ctext x='50' y='66'
+        font-family='Inter,sans-serif' font-size='56' font-weight='800' fill='white' text-anchor='middle'
+        %3EC%3C/text%3E%3C/svg%3E" />
+    <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+    <div id="root"></div>
+
+    <div class="app-shell">
+        <!-- Top bar -->
+        <header class="topbar">
+            <div class="container topbar-inner">
+                <a class="brand" href="index.html" data-testid="brand-logo">
+                    <span class="brand-mark blue">C</span>
+                    Civix
+                </a>
+                <div class="topbar-right">
+                    <span class="role-pill" data-testid="role-pill"><span class="dot"></span> Crew ·
+                        CRW-9381</span>
+                    <a class="btn btn-ghost" href="login.html" data-testid="logout-button">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" stroke-linecap="round"
+                                stroke-linejoin="round" />
+                            <path d="M10 17l-5-5 5-5M5 12h12" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                        Logout
+                    </a>
+                </div>
+            </div>
+        </header>
+
+        <main class="app-main">
+            <div class="container">
+                <div class="page-head">
+                    <div>
+                        <span class="eyebrow">Field Crew</span>
+                        <h2 style="margin-top: 14px;">Today's queue</h2>
+                        <p>4 active assignments · 1 in progress · estimated end of shift 6:30 PM</p>
+                    </div>
+                </div>
+
+                <div class="task-grid">
+                    <!-- Active task card -->
+                    <!-- Active task card -->
+                    <section class="task-active" id="active-task-container" data-testid="active-task-card">
+                        <div style="padding: 20px; text-align: center; color: var(--slate-500);">Loading active task...</div>
+                    </section>
+
+                    <!-- Upcoming tasks list -->
+                    <section class="card task-list" data-testid="upcoming-tasks-card">
+                        <div class="list-head">
+                            <h3>Up next</h3>
+                            <a class="link" href="#" data-testid="view-all-tasks">View all</a>
+                        </div>
+                        <div id="upcoming-tasks-container">
+                            <div style="padding: 20px; text-align: center; color: var(--slate-500);">Loading upcoming tasks...</div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        let base64Proof = "";
+        let activeTaskId = null;
+
+        async function loadTasks() {
+            const token = localStorage.getItem('authToken');
+            if (!token) return;
+            const res = await fetch('http://localhost:8000/api/crew/complaints', {
+                headers: { 'Authorization': `Bearer ${token}` },
+                cache: 'no-store'
+            });
+            const data = await res.json();
+            
+            const activeContainer = document.getElementById('active-task-container');
+            const upcomingContainer = document.getElementById('upcoming-tasks-container');
+            
+            if (data.error) {
+                activeContainer.innerHTML = `<div style="padding: 20px; text-align: center; color: red;">Error: ${data.error}</div>`;
+                upcomingContainer.innerHTML = '';
+                return;
+            }
+
+            if (data.length === 0) {
+                activeContainer.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--slate-500);">No tasks assigned!</div>';
+                upcomingContainer.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--slate-500);">Queue is empty.</div>';
+                return;
+            }
+
+            // Pop first for active
+            const activeTask = data[0];
+            activeTaskId = activeTask.id;
+            
+            activeContainer.innerHTML = `
+                <span class="eyebrow">Active task</span>
+                <h2>${activeTask.category} at ${activeTask.location.split(' (Lat')[0]}</h2>
+                <p class="desc">${activeTask.description}</p>
+                ${activeTask.admin_reject_reason ? `<div style="background: #fef2f2; border-left: 4px solid #ef4444; padding: 12px; margin: 15px 0; border-radius: 4px;">
+                    <strong style="color: #b91c1c; font-size: 13px;">⚠️ Task Rejected by Admin:</strong>
+                    <p style="color: #991b1b; font-size: 14px; margin-top: 4px;">${activeTask.admin_reject_reason}</p>
+                </div>` : ''}
+                <div class="task-meta">
+                    <div>
+                        <div class="m-label">Report ID</div>
+                        <div class="m-value">${activeTask.id.substring(0,8)}</div>
+                    </div>
+                    <div>
+                        <div class="m-label">Priority</div>
+                        <div class="m-value">Standard</div>
+                    </div>
+                    <div>
+                        <div class="m-label">Reported</div>
+                        <div class="m-value">${new Date(activeTask.created_at).toLocaleDateString()}</div>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 20px; margin-bottom: 20px;">
+                    ${activeTask.image_url ? `<img src="${activeTask.image_url}" style="max-height: 150px; border-radius: 6px;"/>` : ''}
+                </div>
+
+                <div class="task-actions" style="flex-wrap: wrap;">
+                    <button class="btn btn-ghost" id="proof-btn">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                            <path d="M21 12.5l-8.5 8.5a5 5 0 0 1-7-7l9.5-9.5a3.5 3.5 0 0 1 5 5L11 18a2 2 0 0 1-3-3l8-8" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                        <span id="proof-label">Upload Proof</span>
+                    </button>
+                    <input type="file" id="proof-upload" style="display: none;" accept="image/*" />
+                    
+                    <button class="btn btn-blue btn-lg" id="start-job-btn">Start Job</button>
+                    <button class="btn btn-success btn-lg" id="complete-btn">Mark Complete</button>
+                </div>
+            `;
+
+            // Attach event listeners for dynamic buttons
+            document.getElementById('proof-btn').addEventListener('click', () => {
+                document.getElementById('proof-upload').click();
+            });
+
+            document.getElementById('proof-upload').addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    document.getElementById('proof-label').innerText = file.name;
+                    const reader = new FileReader();
+                    reader.onload = function(evt) {
+                        const img = new Image();
+                        img.onload = function() {
+                            const canvas = document.createElement('canvas');
+                            const MAX_WIDTH = 800;
+                            const MAX_HEIGHT = 800;
+                            let width = img.width;
+                            let height = img.height;
+
+                            if (width > height) {
+                                if (width > MAX_WIDTH) {
+                                    height *= MAX_WIDTH / width;
+                                    width = MAX_WIDTH;
+                                }
+                            } else {
+                                if (height > MAX_HEIGHT) {
+                                    width *= MAX_HEIGHT / height;
+                                    height = MAX_HEIGHT;
+                                }
+                            }
+                            canvas.width = width;
+                            canvas.height = height;
+                            const ctx = canvas.getContext('2d');
+                            ctx.drawImage(img, 0, 0, width, height);
+                            base64Proof = canvas.toDataURL('image/jpeg', 0.7);
+                        }
+                        img.src = evt.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            const startBtn = document.getElementById('start-job-btn');
+            startBtn.addEventListener('click', function () {
+                startBtn.innerHTML = '⏱ In progress…';
+                startBtn.disabled = true;
+                startBtn.style.opacity = '0.85';
+            });
+
+            const completeBtn = document.getElementById('complete-btn');
+            completeBtn.addEventListener('click', async function () {
+                const original = completeBtn.innerHTML;
+                completeBtn.innerHTML = 'Uploading...';
+                completeBtn.disabled = true;
+
+                if (!base64Proof) {
+                    alert('Please attach a proof photo before completing.');
+                    completeBtn.disabled = false;
+                    completeBtn.innerHTML = original;
+                    return;
+                }
+
+                try {
+                    const res = await fetch('http://localhost:8000/crew_upload', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({
+                            complaint_id: activeTaskId,
+                            after_image_url: base64Proof
+                        })
+                    });
+                    
+                    if (res.ok) {
+                        completeBtn.innerHTML = '✓ Submitted for verification';
+                        setTimeout(() => {
+                            base64Proof = "";
+                            loadTasks();
+                        }, 1500);
+                    } else {
+                        const errData = await res.json();
+                        alert('Error: ' + (errData.error || 'Failed to complete task'));
+                        completeBtn.innerHTML = original;
+                        completeBtn.disabled = false;
+                    }
+                } catch (err) {
+                    alert('Connection error');
+                    completeBtn.innerHTML = original;
+                    completeBtn.disabled = false;
+                }
+            });
+
+            // Populate upcoming
+            upcomingContainer.innerHTML = '';
+            for (let i = 1; i < data.length; i++) {
+                const task = data[i];
+                upcomingContainer.innerHTML += `
+                    <div class="task-item">
+                        <div class="ti-left">
+                            <span class="priority-dot med"></span>
+                            <div class="ti-text">
+                                <div class="ti-title">${task.category} · ${task.location.split(' (Lat')[0]}</div>
+                                <div class="ti-sub">${task.id.substring(0,8)} · ${new Date(task.created_at).toLocaleDateString()}</div>
+                            </div>
+                        </div>
+                        <span class="badge ${task.status === 'pending' ? 'pending' : 'in-progress'}">${task.status}</span>
+                    </div>
+                `;
+            }
+        }
+
+        loadTasks();
+    </script>
+</body>
+
+</html>
