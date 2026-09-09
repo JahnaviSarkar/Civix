@@ -1,0 +1,65 @@
+import { auth } from "../config/firebase";
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api";
+
+export async function getAuthToken(): Promise<string | null> {
+  // Check if Firebase user is logged in and fetch fresh ID token
+  if (auth.currentUser) {
+    try {
+      const idToken = await auth.currentUser.getIdToken();
+      return idToken;
+    } catch (e) {
+      console.warn("Failed to retrieve Firebase ID token:", e);
+    }
+  }
+  // Fall back to local storage (for demo developer tokens e.g. demo-citizen, demo-admin)
+  return localStorage.getItem("authToken");
+}
+
+export function setAuthToken(token: string) {
+  localStorage.setItem("authToken", token);
+}
+
+export function clearAuthToken() {
+  localStorage.removeItem("authToken");
+  localStorage.removeItem("userRole");
+}
+
+export async function apiRequest<T>(
+  endpoint: string,
+  options: RequestInit = {}
+): Promise<T> {
+  const token = await getAuthToken();
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    ...(options.headers as Record<string, string> || {})
+  };
+
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
+  const url = endpoint.startsWith("http")
+    ? endpoint
+    : `${API_BASE_URL}${endpoint.startsWith("/") ? "" : "/"}${endpoint}`;
+
+  const response = await fetch(url, {
+    ...options,
+    headers
+  });
+
+  if (response.status === 401) {
+    clearAuthToken();
+    // Do not auto-redirect if checking auth endpoint
+    if (!endpoint.includes("/auth/me")) {
+      window.location.href = "/login?error=session_expired";
+    }
+  }
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ detail: response.statusText }));
+    throw new Error(errorData.detail || `HTTP Error ${response.status}`);
+  }
+
+  return response.json() as Promise<T>;
+}

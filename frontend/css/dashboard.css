@@ -1,4 +1,4 @@
-﻿/* File: frontend/css/dashboard.css */
+/* File: frontend/css/dashboard.css */
 
 .dashboard-wrapper { display: flex; min-height: 100vh; }
 .side-nav { width: 250px; background: #2c3e50; color: white; padding: 20px; }
@@ -15,7 +15,7 @@
 /* File: frontend/css/dashboard.css */
 .card-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, min-minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 1.5rem;
 }
 

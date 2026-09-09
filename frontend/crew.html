@@ -207,17 +207,32 @@
                 }
 
                 try {
-                    const res = await fetch('http://localhost:8000/crew_upload', {
+                    let res = await fetch(`http://localhost:8000/api/crew/resolve/${activeTaskId}`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
                             'Authorization': `Bearer ${token}`
                         },
                         body: JSON.stringify({
-                            complaint_id: activeTaskId,
-                            after_image_url: base64Proof
+                            after_image_url: base64Proof,
+                            resolution_image_url: base64Proof,
+                            notes: "Task resolved by crew."
                         })
                     });
+                    
+                    if (!res.ok) {
+                        res = await fetch('http://localhost:8000/crew_upload', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${token}`
+                            },
+                            body: JSON.stringify({
+                                complaint_id: activeTaskId,
+                                after_image_url: base64Proof
+                            })
+                        });
+                    }
                     
                     if (res.ok) {
                         completeBtn.innerHTML = '✓ Submitted for verification';

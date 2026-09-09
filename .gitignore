@@ -25,3 +25,6 @@ serviceAccountKey.json
 # OS files
 .DS_Store
 Thumbs.db
+
+# Test & Database cache
+.pytest_cache/

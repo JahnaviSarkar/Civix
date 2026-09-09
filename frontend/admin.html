@@ -220,18 +220,21 @@
                 }
 
                 data.forEach(item => {
-                    const badgeClass = item.status === 'pending' ? 'pending' : 
-                                     item.status === 'in-progress' ? 'in-progress' : 
-                                     item.status === 'completed' ? 'in-progress' : 'verified';
+                    const statusStr = String(item.status || '').toLowerCase();
+                    const badgeClass = statusStr === 'pending' ? 'pending' : 
+                                     statusStr === 'in-progress' || statusStr === 'in_progress' || statusStr === 'assigned' ? 'in-progress' : 
+                                     statusStr === 'completed' || statusStr === 'resolved' ? 'in-progress' : 'verified';
                                      
-                    const statusDisp = item.status === 'completed' ? 'Awaiting Verification' : item.status;
+                    const statusDisp = (statusStr === 'completed' || statusStr === 'resolved') ? 'Awaiting Verification' : 
+                                      (statusStr === 'verified') ? 'Verified ✓' : item.status;
                     const dateStr = item.created_at ? new Date(item.created_at).toLocaleDateString() : 'Just now';
+                    const afterImgUrl = (item.resolution && (item.resolution.resolution_image_url || item.resolution.after_image_url)) || item.after_image_url || '';
 
                     tbody.innerHTML += `
                         <tr>
-                            <td class="id-cell">${(item.id || '').substring(0,8)}</td>
-                            <td>${item.category || 'Issue'} · ${(item.location || 'Unknown location').split(' (Lat')[0]}</td>
-                            <td class="hide-sm">${item.citizen_id ? 'Citizen' : 'Unknown'}</td>
+                            <td class="id-cell">#CIV-${String(item.id || '').substring(0,8)}</td>
+                            <td>${item.title || item.category || 'Issue'} · ${item.address || (item.location || 'City location').split(' (Lat')[0]}</td>
+                            <td class="hide-sm">${item.citizen?.name || (item.citizen_id ? 'Citizen' : 'Unknown')}</td>
                             <td class="hide-sm">${item.status !== 'pending' ? 'Crew Assigned' : '—'}</td>
                             <td><span class="badge ${badgeClass}">${statusDisp}</span></td>
                             <td class="hide-sm">${dateStr}</td>
@@ -240,7 +243,7 @@
                                     data-id="${item.id}" 
                                     data-status="${item.status}"
                                     data-before="${item.image_url || ''}"
-                                    data-after="${item.after_image_url || ''}">
+                                    data-after="${afterImgUrl}">
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
                                         stroke="currentColor" stroke-width="2">
                                         <path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z" />
@@ -253,10 +256,16 @@
                 });
 
                 // Compute dynamic KPIs
-                const openReports = data.filter(i => i.status === 'pending' || i.status === 'in-progress').length;
-                const completedReports = data.filter(i => i.status === 'completed' || i.status === 'verified');
+                const openReports = data.filter(i => {
+                    const s = String(i.status).toLowerCase();
+                    return s === 'pending' || s === 'in-progress' || s === 'in_progress' || s === 'assigned';
+                }).length;
+                const completedReports = data.filter(i => {
+                    const s = String(i.status).toLowerCase();
+                    return s === 'completed' || s === 'resolved' || s === 'verified';
+                });
                 const resolvedReports = completedReports.length;
-                const verifiedReports = completedReports.filter(i => i.status === 'verified').length;
+                const verifiedReports = completedReports.filter(i => String(i.status).toLowerCase() === 'verified').length;
                 
                 let vRate = 0;
                 if (resolvedReports > 0) {
@@ -276,10 +285,10 @@
                 document.querySelectorAll('.verify-btn').forEach(btn => {
                     btn.addEventListener('click', async (e) => {
                         const id = e.currentTarget.dataset.id;
-                        const status = e.currentTarget.dataset.status;
+                        const status = String(e.currentTarget.dataset.status).toUpperCase();
 
-                        if (status !== 'completed') {
-                            alert(`Task is currently ${status}. It can only be verified when 'completed' by a crew.`);
+                        if (status !== 'COMPLETED' && status !== 'RESOLVED' && status !== 'VERIFIED') {
+                            alert(`Task is currently ${status}. It can only be verified when completed/resolved by a crew.`);
                             return;
                         }
 
@@ -288,11 +297,11 @@
                         
                         const modalBefore = document.getElementById('modal-before-img');
                         if (beforeImg) { modalBefore.src = beforeImg; modalBefore.style.display = 'block'; }
-                        else { modalBefore.src = ''; modalBefore.alt = 'No before photo'; }
+                        else { modalBefore.src = ''; modalBefore.alt = 'No before photo uploaded by citizen'; }
 
                         const modalAfter = document.getElementById('modal-after-img');
                         if (afterImg) { modalAfter.src = afterImg; modalAfter.style.display = 'block'; }
-                        else { modalAfter.src = ''; modalAfter.alt = 'No after photo'; }
+                        else { modalAfter.src = ''; modalAfter.alt = 'No after work proof photo uploaded by crew'; }
                         
                         document.getElementById('modal-review').value = '';
                         document.getElementById('modal-stars').value = '5';

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Figure 5.1: Civix Future Scope Roadmap Diagram</title>
+    <!-- Load FontAwesome for Logos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Load Mermaid.js from CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <script>
+        // Initialize Mermaid
+        mermaid.initialize({ startOnLoad: true });
+    </script>
+    <style>
+        body {
+            display: flex; 
+            flex-direction: column;
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh; 
+            background-color: #ffffff; 
+            margin: 0;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            padding: 20px;
+        }
+        .figure-caption {
+            margin-top: 30px;
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 16px;
+        }
+        .mermaid {
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            max-width: 95vw;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    
+    <!-- The Mermaid Code -->
+    <div class="mermaid">
+%%{init: {
+  "theme": "base",
+  "themeVariables": {
+    "primaryColor": "#e8f5e9",
+    "primaryBorderColor": "#4caf50",
+    "primaryTextColor": "#1b5e20",
+    "lineColor": "#2e7d32",
+    "fontFamily": "Segoe UI, Arial, sans-serif"
+  },
+  "flowchart": {
+    "curve": "basis",
+    "nodeSpacing": 40,
+    "rankSpacing": 50
+  }
+}}%%
+graph LR
+    classDef phase1 fill:#f1f8e9,stroke:#689f38,stroke-width:2px,color:#33691e,rx:12px,ry:12px;
+    classDef phase2 fill:#e8f5e9,stroke:#4caf50,stroke-width:2px,color:#1b5e20,rx:12px,ry:12px;
+    classDef phase3 fill:#c8e6c9,stroke:#388e3c,stroke-width:2px,color:#1b5e20,rx:12px,ry:12px;
+    classDef phase4 fill:#a5d6a7,stroke:#2e7d32,stroke-width:2px,color:#1b5e20,rx:12px,ry:12px;
+
+    subgraph "Civix Evolution & Future Integration"
+        direction LR
+        P1(fas:fa-cloud-upload-alt <b>Phase 1: Cloud Storage Migration</b><br/>Transition from Base64 to Firebase Storage<br/>to support 4K High-Res Proof Photos):::phase1
+        P2(fas:fa-robot <b>Phase 2: AI Waste Recognition</b><br/>Integrate Computer Vision API to<br/>auto-categorize waste from Citizen photos):::phase2
+        P3(fas:fa-map-marked-alt <b>Phase 3: Route Optimization</b><br/>Implement Google Maps API to generate<br/>the shortest daily travel path for Crews):::phase3
+        P4(fas:fa-leaf <b>Phase 4: Citizen Gamification</b><br/>Award 'Green Points' for Verified reports<br/>redeemable for Municipal Tax Discounts):::phase4
+
+        P1 ==> P2
+        P2 ==> P3
+        P3 ==> P4
+    end
+    </div>
+
+    <!-- Academic Caption -->
+    <div class="figure-caption">Figure 5.1: Civix Future Scope Roadmap Diagram</div>
+
+</body>
+</html>
