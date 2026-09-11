@@ -70,16 +70,29 @@ def get_current_user(
     # Find or auto-sync user in PostgreSQL DB
     user = db.query(User).filter(User.firebase_uid == firebase_uid).first()
     if not user:
+        # Check if user already exists by email (e.g. from pre-seeded demo user or prior registration)
+        if email:
+            existing_user = db.query(User).filter(User.email == email).first()
+            if existing_user:
+                existing_user.firebase_uid = firebase_uid
+                if "admin" in email:
+                    existing_user.role = UserRole.ADMIN
+                elif "crew" in email:
+                    existing_user.role = UserRole.CREW
+                db.commit()
+                db.refresh(existing_user)
+                return existing_user
+
         # Assign role based on demo or default to citizen
         role_enum = UserRole.CITIZEN
-        if "admin" in email:
+        if email and "admin" in email:
             role_enum = UserRole.ADMIN
-        elif "crew" in email:
+        elif email and "crew" in email:
             role_enum = UserRole.CREW
 
         user = User(
             firebase_uid=firebase_uid,
-            email=email,
+            email=email or f"user_{firebase_uid[:8]}@smartwaste.local",
             name=name,
             role=role_enum
         )

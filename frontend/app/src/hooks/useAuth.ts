@@ -64,7 +64,7 @@ export function useAuth() {
 
   return {
     user: user || null,
-    role: (user?.role || null) as UserRole | null,
+    role: (user?.role ? (user.role as string).toLowerCase() : null) as UserRole | null,
     isAuthenticated,
     isLoading,
     error,

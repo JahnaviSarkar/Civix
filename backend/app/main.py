@@ -62,6 +62,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title=settings.PROJECT_NAME,
     version=settings.VERSION,
+    docs_url=f"{settings.API_V1_STR}/docs",
     openapi_url=f"{settings.API_V1_STR}/openapi.json",
     lifespan=lifespan
 )
@@ -125,12 +126,18 @@ async def legacy_admin_reject(request: Request, db: Session = Depends(get_db), c
     body = VerificationRequest(accepted=False, rejection_reason=review_text)
     return verify_complaint_resolution(complaint_id=int(complaint_id), body=body, current_user=current_user, db=db)
 
+from fastapi.responses import RedirectResponse
+
+@app.get("/docs", include_in_schema=False)
+def docs_redirect():
+    return RedirectResponse(url=f"{settings.API_V1_STR}/docs")
+
 @app.get("/")
 def root():
     return {
         "title": settings.PROJECT_NAME,
         "version": settings.VERSION,
-        "docs": "/docs",
+        "docs": f"{settings.API_V1_STR}/docs",
         "status": "online"
     }
 

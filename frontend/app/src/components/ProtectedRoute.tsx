@@ -25,11 +25,14 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowe
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  if (allowedRoles && role && !allowedRoles.includes(role)) {
-    // Redirect unauthorized user to their respective default portal based on backend role
-    if (role === UserRole.ADMIN) return <Navigate to="/admin" replace />;
-    if (role === UserRole.CREW) return <Navigate to="/crew" replace />;
-    return <Navigate to="/citizen" replace />;
+  if (allowedRoles && role) {
+    const normalizedRole = (role as string).toLowerCase();
+    const isAllowed = allowedRoles.some(r => r.toLowerCase() === normalizedRole);
+    if (!isAllowed) {
+      if (normalizedRole === UserRole.ADMIN) return <Navigate to="/admin" replace />;
+      if (normalizedRole === UserRole.CREW) return <Navigate to="/crew" replace />;
+      return <Navigate to="/citizen" replace />;
+    }
   }
 
   return <>{children}</>;

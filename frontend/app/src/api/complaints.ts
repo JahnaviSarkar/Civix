@@ -39,6 +39,7 @@ export async function assignComplaint(complaintId: number, crewId: number, notes
     method: "POST",
     body: JSON.stringify({
       complaint_id: complaintId,
+      crew_id: crewId,
       assigned_to_id: crewId,
       notes
     })
