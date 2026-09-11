@@ -15,7 +15,7 @@ import os
 # Add backend directory to sys.path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from app.database import Base
+from app.database import Base, sanitize_database_url
 import app.models  # Import all models
 from app.config import settings
 
@@ -26,10 +26,9 @@ if config.config_file_name is not None:
 target_metadata = Base.metadata
 
 # Set sqlalchemy.url from application settings (PostgreSQL / SQLite fallback)
-db_url = settings.DATABASE_URL
-if db_url.startswith("postgres://"):
-    db_url = db_url.replace("postgres://", "postgresql://", 1)
+db_url = sanitize_database_url(settings.DATABASE_URL)
 config.set_main_option("sqlalchemy.url", db_url)
+
 
 
 
