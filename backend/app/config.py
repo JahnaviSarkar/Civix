@@ -2,6 +2,14 @@ import os
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 def get_default_db_url() -> str:
+    if os.getenv("VERCEL") or os.getenv("VERCEL_ENV"):
+        return (
+            os.getenv("DATABASE_URL")
+            or os.getenv("POSTGRES_URL")
+            or os.getenv("POSTGRES_URL_NON_POOLING")
+            or os.getenv("POSTGRES_PRISMA_URL")
+            or ""
+        )
     return (
         os.getenv("DATABASE_URL")
         or os.getenv("POSTGRES_URL")

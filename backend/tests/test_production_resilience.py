@@ -47,3 +47,16 @@ def test_production_smoke_db_down_graceful_handling():
         resp = client.get("/api/complaints")
         # Should respond with HTTP 503 Service Unavailable or 401 Unauthorized, NOT a 500 serverless crash
         assert resp.status_code in [503, 401]
+
+def test_vercel_unconfigured_db_returns_503(monkeypatch):
+    monkeypatch.setenv("VERCEL", "1")
+    monkeypatch.delenv("DATABASE_URL", raising=False)
+    monkeypatch.delenv("POSTGRES_URL", raising=False)
+
+    from app.config import Settings
+    from app.database import sanitize_database_url
+
+    settings = Settings()
+    assert settings.DATABASE_URL == ""
+    _, is_configured = sanitize_database_url(settings.DATABASE_URL)
+    assert is_configured is False

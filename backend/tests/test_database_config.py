@@ -6,7 +6,8 @@ from app.config import Settings, get_default_db_url
 
 def test_sanitize_database_url_quotes_and_whitespace():
     raw_url = ' "postgres://user:password@localhost:5432/dbname" '
-    sanitized = sanitize_database_url(raw_url)
+    sanitized, is_valid = sanitize_database_url(raw_url)
+    assert is_valid is True
     assert sanitized.startswith("postgresql+psycopg2://")
     assert '"' not in sanitized
     assert "'" not in sanitized
@@ -19,7 +20,8 @@ def test_sanitize_database_url_quotes_and_whitespace():
 
 def test_sanitize_database_url_special_characters_in_password():
     raw_url = "postgresql://user:p@ss:w#rd@ep-test.postgres.vercel-storage.com:5432/verceldb?sslmode=require"
-    sanitized = sanitize_database_url(raw_url)
+    sanitized, is_valid = sanitize_database_url(raw_url)
+    assert is_valid is True
     assert sanitized.startswith("postgresql+psycopg2://")
     parsed = make_url(sanitized)
     assert parsed.drivername == "postgresql+psycopg2"
@@ -30,7 +32,9 @@ def test_sanitize_database_url_special_characters_in_password():
 
 def test_sanitize_database_url_sqlite():
     sqlite_url = "sqlite:///./civix_smart_waste.db"
-    assert sanitize_database_url(sqlite_url) == sqlite_url
+    sanitized, is_valid = sanitize_database_url(sqlite_url)
+    assert is_valid is True
+    assert sanitized == sqlite_url
 
 def test_settings_postgres_env_fallbacks(monkeypatch):
     monkeypatch.delenv("DATABASE_URL", raising=False)
@@ -38,7 +42,8 @@ def test_settings_postgres_env_fallbacks(monkeypatch):
     
     settings = Settings()
     assert settings.DATABASE_URL == "postgres://user:pass@host:5432/db"
-    sanitized = sanitize_database_url(settings.DATABASE_URL)
+    sanitized, is_valid = sanitize_database_url(settings.DATABASE_URL)
+    assert is_valid is True
     assert sanitized.startswith("postgresql+psycopg2://")
 
 def test_fastapi_title_non_empty(monkeypatch):

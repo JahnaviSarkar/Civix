@@ -26,7 +26,7 @@ if config.config_file_name is not None:
 target_metadata = Base.metadata
 
 # Set sqlalchemy.url from application settings (PostgreSQL / SQLite fallback)
-db_url = sanitize_database_url(settings.DATABASE_URL)
+db_url, _ = sanitize_database_url(settings.DATABASE_URL)
 config.set_main_option("sqlalchemy.url", db_url)
 
 
