@@ -59,11 +59,15 @@ async def lifespan(app: FastAPI):
         
     yield
 
+api_title = (settings.PROJECT_NAME or "").strip() or "CIVIX Smart Waste Management Platform"
+api_version = (settings.VERSION or "").strip() or "2.0.0"
+api_v1_str = (settings.API_V1_STR or "").strip() or "/api"
+
 app = FastAPI(
-    title=settings.PROJECT_NAME,
-    version=settings.VERSION,
-    docs_url=f"{settings.API_V1_STR}/docs",
-    openapi_url=f"{settings.API_V1_STR}/openapi.json",
+    title=api_title,
+    version=api_version,
+    docs_url=f"{api_v1_str}/docs",
+    openapi_url=f"{api_v1_str}/openapi.json",
     lifespan=lifespan
 )
 

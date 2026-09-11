@@ -19,6 +19,12 @@ class Settings(BaseSettings):
     DATABASE_URL: str = os.getenv("DATABASE_URL", "")
 
     def model_post_init(self, __context) -> None:
+        if not self.PROJECT_NAME or not self.PROJECT_NAME.strip():
+            self.PROJECT_NAME = "CIVIX Smart Waste Management Platform"
+        if not self.VERSION or not self.VERSION.strip():
+            self.VERSION = "2.0.0"
+        if not self.API_V1_STR or not self.API_V1_STR.strip():
+            self.API_V1_STR = "/api"
         if not self.DATABASE_URL or not self.DATABASE_URL.strip():
             self.DATABASE_URL = get_default_db_url()
     

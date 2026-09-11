@@ -40,3 +40,9 @@ def test_settings_postgres_env_fallbacks(monkeypatch):
     assert settings.DATABASE_URL == "postgres://user:pass@host:5432/db"
     sanitized = sanitize_database_url(settings.DATABASE_URL)
     assert sanitized.startswith("postgresql+psycopg2://")
+
+def test_fastapi_title_non_empty(monkeypatch):
+    monkeypatch.setenv("PROJECT_NAME", "")
+    settings = Settings()
+    assert settings.PROJECT_NAME == "CIVIX Smart Waste Management Platform"
+
