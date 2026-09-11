@@ -19,43 +19,45 @@ from app.dependencies.auth import get_current_user, require_admin
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Initialize DB tables
-    Base.metadata.create_all(bind=engine)
-    
-    # Seed initial demo users & data if empty
-    db = SessionLocal()
     try:
-        if db.query(User).count() == 0:
-            demo_users = [
-                User(firebase_uid="demo_uid_citizen", name="Jane Citizen", email="citizen@smartwaste.local", role=UserRole.CITIZEN),
-                User(firebase_uid="demo_uid_crew", name="Crew Alpha Team", email="crew@smartwaste.local", role=UserRole.CREW),
-                User(firebase_uid="demo_uid_admin", name="Municipal Admin", email="admin@smartwaste.local", role=UserRole.ADMIN),
-            ]
-            db.add_all(demo_users)
-            db.commit()
-            
-            # Seed demo complaint
-            cit = db.query(User).filter(User.role == UserRole.CITIZEN).first()
-            if cit:
-                sample_complaint = Complaint(
-                    citizen_id=cit.id,
-                    title="Overflowing Public Dustbin at MG Road",
-                    description="The main commercial dustbin is overflowing causing road obstruction and odor.",
-                    category=ComplaintCategory.GARBAGE_COLLECTION,
-                    severity=7.8,
-                    ai_confidence=0.92,
-                    ai_category="Garbage Collection",
-                    latitude=12.97159,
-                    longitude=77.59456,
-                    address="MG Road Sector 14, Bengaluru",
-                    status=ComplaintStatus.PENDING
-                )
-                db.add(sample_complaint)
+        # Initialize DB tables safely
+        Base.metadata.create_all(bind=engine)
+        # Seed initial demo users & data if empty
+        db = SessionLocal()
+        try:
+            if db.query(User).count() == 0:
+                demo_users = [
+                    User(firebase_uid="demo_uid_citizen", name="Jane Citizen", email="citizen@smartwaste.local", role=UserRole.CITIZEN),
+                    User(firebase_uid="demo_uid_crew", name="Crew Alpha Team", email="crew@smartwaste.local", role=UserRole.CREW),
+                    User(firebase_uid="demo_uid_admin", name="Municipal Admin", email="admin@smartwaste.local", role=UserRole.ADMIN),
+                ]
+                db.add_all(demo_users)
                 db.commit()
+
+                # Seed demo complaint
+                cit = db.query(User).filter(User.role == UserRole.CITIZEN).first()
+                if cit:
+                    sample_complaint = Complaint(
+                        citizen_id=cit.id,
+                        title="Overflowing Public Dustbin at MG Road",
+                        description="The main commercial dustbin is overflowing causing road obstruction and odor.",
+                        category=ComplaintCategory.GARBAGE_COLLECTION,
+                        severity=7.8,
+                        ai_confidence=0.92,
+                        ai_category="Garbage Collection",
+                        latitude=12.97159,
+                        longitude=77.59456,
+                        address="MG Road Sector 14, Bengaluru",
+                        status=ComplaintStatus.PENDING
+                    )
+                    db.add(sample_complaint)
+                    db.commit()
+        except Exception as e:
+            print(f"Lifespan seeding warning: {e}")
+        finally:
+            db.close()
     except Exception as e:
-        print(f"Lifespan seeding warning: {e}")
-    finally:
-        db.close()
+        print(f"Lifespan DB initialization warning: {e}")
         
     yield
 

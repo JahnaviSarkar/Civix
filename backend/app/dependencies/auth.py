@@ -9,31 +9,37 @@ from app.database import get_db
 from app.models.user import User, UserRole
 from app.config import settings
 
-# Initialize Firebase Admin SDK if not already initialized
-if not firebase_admin._apps:
-    try:
-        # Check if environment credentials exist
-        if settings.FIREBASE_PROJECT_ID and settings.FIREBASE_CLIENT_EMAIL and settings.FIREBASE_PRIVATE_KEY:
-            private_key = settings.FIREBASE_PRIVATE_KEY.replace('\\n', '\n')
-            cred_dict = {
-                "type": "service_account",
-                "project_id": settings.FIREBASE_PROJECT_ID,
-                "client_email": settings.FIREBASE_CLIENT_EMAIL,
-                "private_key": private_key
-            }
-            cred = credentials.Certificate(cred_dict)
-            firebase_admin.initialize_app(cred)
-        else:
-            # Fallback to serviceAccountKey.json if present locally
-            key_path = os.path.join(os.path.dirname(__file__), "..", "..", "serviceAccountKey.json")
-            if os.path.exists(key_path):
-                cred = credentials.Certificate(key_path)
+_firebase_initialized = False
+
+def get_firebase_app():
+    global _firebase_initialized
+    if _firebase_initialized:
+        return
+    if not firebase_admin._apps:
+        try:
+            # Check if environment credentials exist
+            if settings.FIREBASE_PROJECT_ID and settings.FIREBASE_CLIENT_EMAIL and settings.FIREBASE_PRIVATE_KEY:
+                private_key = settings.FIREBASE_PRIVATE_KEY.replace('\\n', '\n')
+                cred_dict = {
+                    "type": "service_account",
+                    "project_id": settings.FIREBASE_PROJECT_ID,
+                    "client_email": settings.FIREBASE_CLIENT_EMAIL,
+                    "private_key": private_key
+                }
+                cred = credentials.Certificate(cred_dict)
                 firebase_admin.initialize_app(cred)
             else:
-                # Initialize default app for project
-                firebase_admin.initialize_app(options={'projectId': settings.FIREBASE_PROJECT_ID})
-    except Exception as e:
-        print(f"Warning: Firebase Admin Initialization Warning: {e}")
+                # Fallback to serviceAccountKey.json if present locally
+                key_path = os.path.join(os.path.dirname(__file__), "..", "..", "serviceAccountKey.json")
+                if os.path.exists(key_path):
+                    cred = credentials.Certificate(key_path)
+                    firebase_admin.initialize_app(cred)
+                elif settings.FIREBASE_PROJECT_ID:
+                    # Initialize default app for project
+                    firebase_admin.initialize_app(options={'projectId': settings.FIREBASE_PROJECT_ID})
+        except Exception as e:
+            print(f"Warning: Firebase Admin Initialization Warning: {e}")
+    _firebase_initialized = True
 
 security = HTTPBearer(auto_error=True)
 
@@ -41,6 +47,7 @@ def get_current_user(
     token: HTTPAuthorizationCredentials = Depends(security),
     db: Session = Depends(get_db)
 ) -> User:
+    get_firebase_app()
     raw_token = token.credentials
     firebase_uid = None
     email = None
