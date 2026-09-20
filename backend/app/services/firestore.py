@@ -38,7 +38,7 @@ def get_firestore_client():
     if not firebase_admin._apps:
         try:
             if settings.FIREBASE_PROJECT_ID and settings.FIREBASE_CLIENT_EMAIL and settings.FIREBASE_PRIVATE_KEY:
-                private_key = settings.FIREBASE_PRIVATE_KEY.replace('\\n', '\n')
+                private_key = settings.FIREBASE_PRIVATE_KEY.strip('"').strip("'").replace('\\n', '\n')
                 cred_dict = {
                     "type": "service_account",
                     "project_id": settings.FIREBASE_PROJECT_ID,
@@ -58,7 +58,10 @@ def get_firestore_client():
             logger.warning(f"Firebase Admin Initialization Warning: {e}")
 
     try:
-        _firestore_client = firestore.client()
+        if settings.FIREBASE_PROJECT_ID:
+            _firestore_client = firestore.client(project=settings.FIREBASE_PROJECT_ID)
+        else:
+            _firestore_client = firestore.client()
         return _firestore_client
     except Exception as e:
         logger.error(f"Failed to initialize Firestore client: {e}")

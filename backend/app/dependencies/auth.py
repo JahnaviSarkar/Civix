@@ -20,7 +20,7 @@ def get_firebase_app():
     if not firebase_admin._apps:
         try:
             if settings.FIREBASE_PROJECT_ID and settings.FIREBASE_CLIENT_EMAIL and settings.FIREBASE_PRIVATE_KEY:
-                private_key = settings.FIREBASE_PRIVATE_KEY.replace('\\n', '\n')
+                private_key = settings.FIREBASE_PRIVATE_KEY.strip('"').strip("'").replace('\\n', '\n')
                 cred_dict = {
                     "type": "service_account",
                     "project_id": settings.FIREBASE_PROJECT_ID,
@@ -88,7 +88,14 @@ def get_current_user(
             )
 
     # Retrieve user profile document from Firestore
-    user = FirestoreRepository.get_user_by_uid(firebase_uid)
+    try:
+        user = FirestoreRepository.get_user_by_uid(firebase_uid)
+    except Exception as e:
+        logger.error(f"Firestore user lookup error for {firebase_uid}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=f"Database error during user authentication: {str(e)}"
+        )
     if not user:
         # Check by email if user profile pre-existed
         if email:
