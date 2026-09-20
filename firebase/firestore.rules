@@ -1,0 +1,47 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper function to check authentication
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Helper function to get current user document
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    // Helper functions for roles
+    function hasRole(role) {
+      return isAuthenticated() && getUserData().role == role;
+    }
+
+    // Users Collection: Users can read their own doc; write restricted via backend API
+    match /users/{userId} {
+      allow read: if isAuthenticated() && (request.auth.uid == userId || hasRole('admin'));
+      allow write: if false; // All profile & role updates must be mediated by backend API
+    }
+
+    // Complaints Collection: Public/authenticated read; writes mediated by backend API
+    match /complaints/{complaintId} {
+      allow read: if isAuthenticated();
+      allow write: if false; // All lifecycle state transitions must be mediated by backend API
+    }
+
+    // Assignments, Resolutions, Ratings Collections: Mediated by backend API
+    match /assignments/{assignmentId} {
+      allow read: if isAuthenticated();
+      allow write: if false;
+    }
+
+    match /resolutions/{resolutionId} {
+      allow read: if isAuthenticated();
+      allow write: if false;
+    }
+
+    match /ratings/{ratingId} {
+      allow read: if isAuthenticated();
+      allow write: if false;
+    }
+  }
+}

@@ -1,104 +1,48 @@
 import pytest
-from fastapi import Depends
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
-from sqlalchemy.orm import Session, sessionmaker
-from sqlalchemy.pool import StaticPool
 
 from app.main import app
-from app.database import Base, get_db
-from app.models.user import User, UserRole
-from app.models.complaint import Complaint, ComplaintStatus, ComplaintCategory
-from app.models.resolution import Resolution
+from app.models.enums import UserRole
 from app.dependencies.auth import get_current_user, require_admin
-
-# Create in-memory test SQLite DB
-SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URL,
-    connect_args={"check_same_thread": False},
-    poolclass=StaticPool,
-)
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-Base.metadata.create_all(bind=engine)
+from app.services.firestore import FirestoreRepository, set_testing_mode
 
 client = TestClient(app)
 
 @pytest.fixture(autouse=True)
 def setup_verification_db():
-    Base.metadata.drop_all(bind=engine)
-    Base.metadata.create_all(bind=engine)
+    set_testing_mode(True)
 
-    db = TestingSessionLocal()
-    admin_user = User(
-        id=3,
-        firebase_uid="demo_uid_admin",
-        name="Municipal Admin",
-        email="admin@smartwaste.local",
-        role=UserRole.ADMIN
-    )
-    citizen_user = User(
-        id=1,
-        firebase_uid="demo_uid_citizen",
-        name="Jane Citizen",
-        email="citizen@smartwaste.local",
-        role=UserRole.CITIZEN
-    )
-    crew_user = User(
-        id=2,
-        firebase_uid="demo_uid_crew",
-        name="Crew Alpha",
-        email="crew@smartwaste.local",
-        role=UserRole.CREW
-    )
-    db.add_all([admin_user, citizen_user, crew_user])
+    admin_user = FirestoreRepository.create_user("demo_uid_admin", "Municipal Admin", "admin@smartwaste.local", UserRole.ADMIN.value)
+    citizen_user = FirestoreRepository.create_user("demo_uid_citizen", "Jane Citizen", "citizen@smartwaste.local", UserRole.CITIZEN.value)
+    crew_user = FirestoreRepository.create_user("demo_uid_crew", "Crew Alpha", "crew@smartwaste.local", UserRole.CREW.value)
 
-    # Add resolved complaint awaiting admin verification with both citizen and crew photos
-    complaint = Complaint(
-        id=100,
-        citizen_id=1,
-        title="Overflowing Dumpster",
-        description="Dumpster overflowing onto road",
-        category=ComplaintCategory.GARBAGE_COLLECTION,
-        severity=7.5,
-        latitude=12.97,
-        longitude=77.59,
-        address="123 Park Street",
-        image_url="data:image/png;base64,citizen_before_photo_data",
-        status=ComplaintStatus.RESOLVED
-    )
-    db.add(complaint)
+    payload = {
+        "title": "Overflowing Dumpster",
+        "description": "Dumpster overflowing onto road",
+        "category": "Garbage Collection",
+        "severity": 7.5,
+        "latitude": 12.97,
+        "longitude": 77.59,
+        "address": "123 Park Street",
+        "image_url": "data:image/png;base64,citizen_before_photo_data"
+    }
+    complaint = FirestoreRepository.create_complaint(citizen_user, payload)
+    cid = complaint["id"]
+    FirestoreRepository.assign_complaint(cid, crew_user, notes="Assigned")
+    FirestoreRepository.resolve_complaint(cid, crew_user["id"], notes="Area cleared", after_image_url="data:image/png;base64,crew_after_photo_data")
 
-    resolution = Resolution(
-        id=50,
-        complaint_id=100,
-        crew_id=2,
-        resolution_image_url="data:image/png;base64,crew_after_photo_data",
-        notes="Area cleared and disinfected."
-    )
-    db.add(resolution)
-    db.commit()
-    db.close()
+    def override_require_admin():
+        return admin_user
 
-    def override_get_db():
-        try:
-            db_session = TestingSessionLocal()
-            yield db_session
-        finally:
-            db_session.close()
-
-    def override_require_admin(db_session: Session = Depends(override_get_db)):
-        return db_session.query(User).filter(User.id == 3).first()
-
-    app.dependency_overrides[get_db] = override_get_db
     app.dependency_overrides[require_admin] = override_require_admin
     app.dependency_overrides[get_current_user] = override_require_admin
     yield
     app.dependency_overrides.clear()
+    set_testing_mode(False)
 
 def test_admin_approve_verification():
     response = client.post(
-        "/api/complaints/100/verify",
+        "/api/complaints/1/verify",
         json={"accepted": True}
     )
     assert response.status_code == 200
@@ -109,7 +53,7 @@ def test_admin_approve_verification():
 
 def test_admin_reject_verification():
     response = client.post(
-        "/api/complaints/100/verify",
+        "/api/complaints/1/verify",
         json={"accepted": False, "rejection_reason": "Garbage still visible on curbside."}
     )
     assert response.status_code == 200
@@ -120,7 +64,7 @@ def test_admin_reject_verification():
 def test_legacy_admin_verify_route():
     response = client.post(
         "/admin_verify",
-        json={"complaint_id": 100}
+        json={"complaint_id": 1}
     )
     assert response.status_code == 200
     data = response.json()
