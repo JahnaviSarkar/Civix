@@ -28,7 +28,7 @@ export function useAuth() {
     return () => unsubscribe();
   }, [queryClient]);
 
-  const tokenKey = firebaseUser ? firebaseUser.uid : demoToken;
+  const tokenKey = demoToken && demoToken.startsWith("demo-") ? demoToken : (firebaseUser ? firebaseUser.uid : demoToken);
 
   const { data: user, isLoading: isUserLoading, error, refetch } = useQuery<User>({
     queryKey: ["currentUser", tokenKey],
@@ -56,7 +56,9 @@ export function useAuth() {
     const token = `demo-${role}`;
     setAuthToken(token);
     setDemoToken(token);
+    setFirebaseUser(null);
     localStorage.setItem("userRole", role);
+    queryClient.removeQueries({ queryKey: ["currentUser"] });
     const res = await refetch();
     if (res.isError || !res.data) {
       clearAuthToken();
