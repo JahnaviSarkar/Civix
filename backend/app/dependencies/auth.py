@@ -87,6 +87,23 @@ def get_current_user(
                 headers={"WWW-Authenticate": "Bearer"},
             )
 
+    def _ensure_user_fields(u: Dict[str, Any], default_uid: str, default_name: str, default_email: str) -> Dict[str, Any]:
+        from datetime import datetime, timezone
+        u = dict(u)
+        if not u.get("id"):
+            u["id"] = abs(hash(default_uid)) % 1000000 + 1
+        if not u.get("name"):
+            u["name"] = default_name or "Civix User"
+        if not u.get("email"):
+            u["email"] = default_email or f"user_{default_uid[:8]}@smartwaste.local"
+        if not u.get("role"):
+            u["role"] = "citizen"
+        if not u.get("created_at"):
+            u["created_at"] = datetime.now(timezone.utc).isoformat()
+        if not u.get("firebase_uid"):
+            u["firebase_uid"] = default_uid
+        return u
+
     # Retrieve user profile document from Firestore
     try:
         user = FirestoreRepository.get_user_by_uid(firebase_uid)
@@ -96,12 +113,13 @@ def get_current_user(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail=f"Database error during user authentication: {str(e)}"
         )
+
     if not user:
         # Check by email if user profile pre-existed
         if email:
             existing = FirestoreRepository.get_user_by_email(email)
             if existing:
-                return existing
+                return _ensure_user_fields(existing, firebase_uid, name, email)
 
         role_str = UserRole.CITIZEN.value
         if email and "admin" in email:
@@ -116,7 +134,7 @@ def get_current_user(
             role=role_str
         )
 
-    return user
+    return _ensure_user_fields(user, firebase_uid, name, email)
 
 def require_role(allowed_roles: List[UserRole]):
     def role_checker(user: Dict[str, Any] = Depends(get_current_user)) -> Dict[str, Any]:
