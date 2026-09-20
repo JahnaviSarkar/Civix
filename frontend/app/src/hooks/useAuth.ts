@@ -40,7 +40,11 @@ export function useAuth() {
 
   const loginDemo = async (role: "citizen" | "crew" | "admin") => {
     if (auth.currentUser) {
-      await firebaseSignOut(auth);
+      try {
+        await firebaseSignOut(auth);
+      } catch (e) {
+        console.warn("Firebase signout error ignored during demo login:", e);
+      }
     }
     const token = `demo-${role}`;
     setAuthToken(token);
@@ -59,7 +63,11 @@ export function useAuth() {
     clearAuthToken();
     setDemoToken(null);
     if (auth.currentUser) {
-      await firebaseSignOut(auth);
+      try {
+        await firebaseSignOut(auth);
+      } catch (e) {
+        console.warn("Firebase signout error ignored during logout:", e);
+      }
     }
     queryClient.clear();
     window.location.href = "/login";

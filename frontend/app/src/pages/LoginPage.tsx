@@ -183,13 +183,13 @@ export const LoginPage: React.FC = () => {
         <div className="mt-8 pt-6 border-t border-[#D9F0FF] text-center">
           <p className="text-xs text-slate-500 font-bold uppercase tracking-wider mb-3">Quick Demo Access (One-Click)</p>
           <div className="flex flex-wrap gap-2 justify-center">
-            <Button size="sm" variant="secondary" onClick={() => handleDemoLogin('admin')} disabled={isSubmitting}>
+            <Button type="button" size="sm" variant="secondary" onClick={() => handleDemoLogin('admin')} disabled={isSubmitting}>
               Demo as Admin
             </Button>
-            <Button size="sm" variant="airy" onClick={() => handleDemoLogin('crew')} disabled={isSubmitting}>
+            <Button type="button" size="sm" variant="airy" onClick={() => handleDemoLogin('crew')} disabled={isSubmitting}>
               Demo as Crew
             </Button>
-            <Button size="sm" variant="matcha" onClick={() => handleDemoLogin('citizen')} disabled={isSubmitting}>
+            <Button type="button" size="sm" variant="matcha" onClick={() => handleDemoLogin('citizen')} disabled={isSubmitting}>
               Demo as Citizen
             </Button>
           </div>
