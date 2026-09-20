@@ -7,6 +7,10 @@ const API_BASE_URL =
     : "http://localhost:8000/api");
 
 export async function getAuthToken(): Promise<string | null> {
+  const localToken = localStorage.getItem("authToken");
+  if (localToken && localToken.startsWith("demo-")) {
+    return localToken;
+  }
   // Check if Firebase user is logged in and fetch fresh ID token
   if (auth.currentUser) {
     try {
@@ -16,8 +20,8 @@ export async function getAuthToken(): Promise<string | null> {
       console.warn("Failed to retrieve Firebase ID token:", e);
     }
   }
-  // Fall back to local storage (for demo developer tokens e.g. demo-citizen, demo-admin)
-  return localStorage.getItem("authToken");
+  // Fall back to local storage
+  return localToken;
 }
 
 export function setAuthToken(token: string) {
