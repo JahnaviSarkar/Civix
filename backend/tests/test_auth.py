@@ -31,13 +31,24 @@ def test_unauthorized_access():
     response = client.get("/api/complaints")
     assert response.status_code in [401, 403]
 
-def test_demo_auth_me():
-    headers = {"Authorization": "Bearer demo-citizen"}
+def test_demo_auth_me_all_roles():
+    for role_key in ["citizen", "crew", "admin"]:
+        headers = {"Authorization": f"Bearer demo-{role_key}"}
+        response = client.get("/api/auth/me", headers=headers)
+        assert response.status_code == 200
+        data = response.json()
+        assert data["email"] == f"{role_key}@smartwaste.local"
+        assert data["role"] == role_key
+
+def test_invalid_demo_token_rejected():
+    headers = {"Authorization": "Bearer demo-superadmin"}
     response = client.get("/api/auth/me", headers=headers)
-    assert response.status_code == 200
-    data = response.json()
-    assert data["email"] == "citizen@smartwaste.local"
-    assert data["role"] == "citizen"
+    assert response.status_code == 401
+
+def test_unauthorized_arbitrary_token_rejected():
+    headers = {"Authorization": "Bearer fake-token-12345"}
+    response = client.get("/api/auth/me", headers=headers)
+    assert response.status_code == 401
 
 def test_prevent_role_escalation_on_sync():
     headers = {"Authorization": "Bearer demo-citizen"}
@@ -60,11 +71,12 @@ def test_demo_tokens_rejected_when_flag_disabled():
 def test_demo_tokens_accepted_when_flag_enabled():
     from app.config import settings
     settings.ENABLE_DEMO_TOKENS = True
-    headers = {"Authorization": "Bearer demo-citizen"}
-    response = client.get("/api/auth/me", headers=headers)
-    assert response.status_code == 200
-    data = response.json()
-    assert data["role"] == "citizen"
+    for role_key in ["citizen", "crew", "admin"]:
+        headers = {"Authorization": f"Bearer demo-{role_key}"}
+        response = client.get("/api/auth/me", headers=headers)
+        assert response.status_code == 200
+        data = response.json()
+        assert data["role"] == role_key
 
 @pytest.mark.anyio
 async def test_lifespan_seeding_disabled_by_default():

@@ -182,15 +182,15 @@ export const LoginPage: React.FC = () => {
         {/* Demo Quick Logins */}
         <div className="mt-8 pt-6 border-t border-[#D9F0FF] text-center">
           <p className="text-xs text-slate-500 font-bold uppercase tracking-wider mb-3">Quick Demo Access (One-Click)</p>
-          <div className="flex gap-2 justify-center">
-            <Button size="sm" variant="matcha" onClick={() => handleDemoLogin('citizen')} disabled={isSubmitting}>
-              Citizen
+          <div className="flex flex-wrap gap-2 justify-center">
+            <Button size="sm" variant="secondary" onClick={() => handleDemoLogin('admin')} disabled={isSubmitting}>
+              Demo as Admin
             </Button>
             <Button size="sm" variant="airy" onClick={() => handleDemoLogin('crew')} disabled={isSubmitting}>
-              Crew
+              Demo as Crew
             </Button>
-            <Button size="sm" variant="secondary" onClick={() => handleDemoLogin('admin')} disabled={isSubmitting}>
-              Admin
+            <Button size="sm" variant="matcha" onClick={() => handleDemoLogin('citizen')} disabled={isSubmitting}>
+              Demo as Citizen
             </Button>
           </div>
         </div>
