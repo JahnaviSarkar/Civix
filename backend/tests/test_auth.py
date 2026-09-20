@@ -110,3 +110,22 @@ async def test_lifespan_seeding_enabled_by_flag():
 
     assert FirestoreRepository.get_user_by_uid("demo_uid_citizen") is not None
     settings.ENABLE_DEMO_SEEDING = False
+
+def test_get_firebase_app_uninitialized_raises_503(monkeypatch):
+    import os
+    import firebase_admin
+    from fastapi import HTTPException
+    import app.dependencies.auth as auth_dep
+
+    monkeypatch.setattr(firebase_admin, "_apps", {})
+    monkeypatch.setattr(auth_dep, "_firebase_initialized", False)
+    monkeypatch.setattr(auth_dep.settings, "FIREBASE_PROJECT_ID", "")
+    monkeypatch.setattr(auth_dep.settings, "FIREBASE_CLIENT_EMAIL", "")
+    monkeypatch.setattr(auth_dep.settings, "FIREBASE_PRIVATE_KEY", "")
+    monkeypatch.setattr(os.path, "exists", lambda p: False)
+
+    with pytest.raises(HTTPException) as exc_info:
+        auth_dep.get_firebase_app()
+
+    assert exc_info.value.status_code == 503
+    assert "Authentication service unavailable" in exc_info.value.detail

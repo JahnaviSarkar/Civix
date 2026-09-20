@@ -1,4 +1,5 @@
 import os
+import logging
 import firebase_admin
 from firebase_admin import credentials, auth
 from fastapi import Depends, HTTPException, status
@@ -9,11 +10,12 @@ from app.models.enums import UserRole
 from app.config import settings
 from app.services.firestore import FirestoreRepository
 
+logger = logging.getLogger("civix.auth")
 _firebase_initialized = False
 
 def get_firebase_app():
     global _firebase_initialized
-    if _firebase_initialized:
+    if _firebase_initialized and firebase_admin._apps:
         return
     if not firebase_admin._apps:
         try:
@@ -35,7 +37,17 @@ def get_firebase_app():
                 elif settings.FIREBASE_PROJECT_ID:
                     firebase_admin.initialize_app(options={'projectId': settings.FIREBASE_PROJECT_ID})
         except Exception as e:
-            print(f"Warning: Firebase Admin Initialization Warning: {e}")
+            logger.error(f"Firebase Admin Initialization Error: {e}")
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail=f"Authentication service configuration failure: {str(e)}"
+            )
+
+    if not firebase_admin._apps:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Authentication service unavailable: Firebase Admin SDK is not initialized"
+        )
     _firebase_initialized = True
 
 security = HTTPBearer(auto_error=True)
@@ -63,6 +75,11 @@ def get_current_user(
             firebase_uid = decoded_token.get("uid")
             email = decoded_token.get("email", "")
             name = decoded_token.get("name", email.split("@")[0] if email else "Civix User")
+        except ValueError as e:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail=f"Authentication service configuration error: {str(e)}"
+            )
         except Exception as e:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,

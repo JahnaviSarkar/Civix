@@ -29,3 +29,5 @@ Thumbs.db
 # Test & Database cache
 .pytest_cache/
 *.db
+.vercel
+.env*
