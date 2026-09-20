@@ -13,11 +13,18 @@ export function useAuth() {
   const [demoToken, setDemoToken] = useState<string | null>(localStorage.getItem("authToken"));
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (fbUser) => {
-      setFirebaseUser(fbUser);
-      setAuthInitializing(false);
-      queryClient.invalidateQueries({ queryKey: ["currentUser"] });
-    });
+    const unsubscribe = onAuthStateChanged(
+      auth,
+      (fbUser) => {
+        setFirebaseUser(fbUser);
+        setAuthInitializing(false);
+        queryClient.invalidateQueries({ queryKey: ["currentUser"] });
+      },
+      (err) => {
+        console.warn("Firebase Auth listener error:", err);
+        setAuthInitializing(false);
+      }
+    );
     return () => unsubscribe();
   }, [queryClient]);
 
