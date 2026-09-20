@@ -139,6 +139,8 @@ def docs_redirect():
     return RedirectResponse(url=f"{settings.API_V1_STR}/docs")
 
 @app.get("/")
+@app.get("/api")
+@app.get("/api/")
 def root():
     return {
         "title": settings.PROJECT_NAME,

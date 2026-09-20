@@ -39,9 +39,13 @@ export async function apiRequest<T>(
     headers["Authorization"] = `Bearer ${token}`;
   }
 
+  let path = endpoint;
+  if (API_BASE_URL && path.startsWith(API_BASE_URL)) {
+    path = path.substring(API_BASE_URL.length);
+  }
   const url = endpoint.startsWith("http")
     ? endpoint
-    : `${API_BASE_URL}${endpoint.startsWith("/") ? "" : "/"}${endpoint}`;
+    : `${API_BASE_URL}${path.startsWith("/") ? "" : "/"}${path}`;
 
   const response = await fetch(url, {
     ...options,
