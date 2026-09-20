@@ -46,7 +46,13 @@ export function useAuth() {
     setAuthToken(token);
     setDemoToken(token);
     localStorage.setItem("userRole", role);
-    await refetch();
+    const res = await refetch();
+    if (res.isError || !res.data) {
+      clearAuthToken();
+      setDemoToken(null);
+      throw res.error || new Error(`Failed to log in as ${role}`);
+    }
+    return res.data;
   };
 
   const logout = async () => {

@@ -1,6 +1,10 @@
 import { auth } from "../config/firebase";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api";
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL ||
+  (typeof window !== "undefined" && window.location.hostname !== "localhost" && window.location.hostname !== "127.0.0.1"
+    ? "/api"
+    : "http://localhost:8000/api");
 
 export async function getAuthToken(): Promise<string | null> {
   // Check if Firebase user is logged in and fetch fresh ID token
