@@ -29,11 +29,12 @@ export function useAuth() {
   }, [queryClient]);
 
   const tokenKey = demoToken && demoToken.startsWith("demo-") ? demoToken : (firebaseUser ? firebaseUser.uid : demoToken);
+  const hasToken = !!(firebaseUser || demoToken || localStorage.getItem("authToken"));
 
   const { data: user, isLoading: isUserLoading, error, refetch } = useQuery<User>({
     queryKey: ["currentUser", tokenKey],
     queryFn: fetchCurrentUser,
-    enabled: !!(firebaseUser || demoToken),
+    enabled: hasToken,
     retry: false
   });
 
@@ -58,14 +59,17 @@ export function useAuth() {
     setDemoToken(token);
     setFirebaseUser(null);
     localStorage.setItem("userRole", role);
-    queryClient.removeQueries({ queryKey: ["currentUser"] });
-    const res = await refetch();
-    if (res.isError || !res.data) {
+    try {
+      const userData = await fetchCurrentUser();
+      queryClient.setQueryData(["currentUser", token], userData);
+      queryClient.setQueryData(["currentUser", null], userData);
+      await refetch();
+      return userData;
+    } catch (err: any) {
       clearAuthToken();
       setDemoToken(null);
-      throw res.error || new Error(`Failed to log in as ${role}`);
+      throw new Error(err.message || `Failed to log in as ${role}`);
     }
-    return res.data;
   };
 
   const logout = async () => {
