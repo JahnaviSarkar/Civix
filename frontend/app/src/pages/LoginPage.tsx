@@ -57,6 +57,9 @@ export const LoginPage: React.FC = () => {
     setSelectedRole(demoRole);
     setErrorMessage(null);
     setIsSubmitting(true);
+    if (searchParams.has('error')) {
+      navigate('/login', { replace: true });
+    }
     try {
       await loginDemo(demoRole);
     } catch (err: any) {
