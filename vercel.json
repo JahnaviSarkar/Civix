@@ -22,11 +22,12 @@
       "dest": "/api/index.py"
     },
     {
-      "handle": "filesystem"
+      "src": "/(assets/.*)",
+      "dest": "/frontend/app/$1"
     },
     {
       "src": "/(.*)",
-      "dest": "/index.html"
+      "dest": "/frontend/app/index.html"
     }
   ]
 }
