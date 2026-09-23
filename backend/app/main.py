@@ -32,6 +32,12 @@ async def lifespan(app: FastAPI):
         print("[SECURITY WARNING] DEMO TOKENS ENABLED - DO NOT USE IN PRODUCTION")
 
     try:
+        if settings.USE_MOCK_DB:
+            from app.services.firestore import set_testing_mode
+            set_testing_mode(True)
+            logger.warning("USING MOCK IN-MEMORY DATABASE: Firebase is completely bypassed.")
+            print("[WARNING] USING MOCK IN-MEMORY DATABASE: Firebase is completely bypassed.")
+
         # Seed initial demo users & data into Firestore repository ONLY if explicitly enabled
         if settings.ENABLE_DEMO_SEEDING and not FirestoreRepository.get_user_by_uid("demo_uid_citizen"):
             cit = FirestoreRepository.create_user(
@@ -94,7 +100,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Mount Routers
+# Mount Routers (with /api prefix)
 app.include_router(auth_router, prefix=settings.API_V1_STR)
 app.include_router(complaints_router, prefix=settings.API_V1_STR)
 app.include_router(crew_router, prefix=settings.API_V1_STR)
@@ -102,7 +108,16 @@ app.include_router(admin_router, prefix=settings.API_V1_STR)
 app.include_router(analytics_router, prefix=settings.API_V1_STR)
 app.include_router(users_router, prefix=settings.API_V1_STR)
 
+# Mount Routers (without prefix) to handle Vercel path stripping
+app.include_router(auth_router)
+app.include_router(complaints_router)
+app.include_router(crew_router)
+app.include_router(admin_router)
+app.include_router(analytics_router)
+app.include_router(users_router)
+
 @app.get(f"{settings.API_V1_STR}/dashboard/stats")
+@app.get("/dashboard/stats")
 def dashboard_stats_alias(current_user: Dict[str, Any] = Depends(get_current_user)):
     return get_analytics_overview(current_user=current_user)
 
@@ -141,13 +156,14 @@ async def legacy_admin_reject(request: Request, current_user: Dict[str, Any] = D
 def docs_redirect():
     return RedirectResponse(url=f"{settings.API_V1_STR}/docs")
 
-@app.get("/")
-@app.get("/api")
-@app.get("/api/")
-def root():
+@app.api_route("/{path:path}", methods=["GET", "POST", "PUT", "DELETE"])
+def catch_all(path: str, request: Request):
     return {
         "title": settings.PROJECT_NAME,
         "version": settings.VERSION,
         "docs": f"{settings.API_V1_STR}/docs",
-        "status": "online"
+        "status": "online",
+        "received_path": path,
+        "url": str(request.url),
+        "method": request.method
     }
