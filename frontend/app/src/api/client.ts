@@ -1,10 +1,7 @@
 import { auth } from "../config/firebase";
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL ||
-  (typeof window !== "undefined" && window.location.hostname !== "localhost" && window.location.hostname !== "127.0.0.1"
-    ? "/api"
-    : "http://localhost:8000/api");
+const isLocalhost = typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1");
+const API_BASE_URL = isLocalhost ? "http://localhost:8000/api" : "/api";
 
 export async function getAuthToken(): Promise<string | null> {
   const localToken = localStorage.getItem("authToken");
@@ -60,17 +57,32 @@ export async function apiRequest<T>(
     headers
   });
 
+  const contentType = response.headers.get("content-type") || "";
+  const isJson = contentType.includes("application/json");
+
   if (response.status === 401) {
     clearAuthToken();
-    // Do not auto-redirect if checking auth endpoint
     if (!endpoint.includes("/auth/me")) {
       window.location.href = "/login?error=session_expired";
     }
   }
 
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({ detail: response.statusText }));
-    throw new Error(errorData.detail || `HTTP Error ${response.status}`);
+    if (isJson) {
+      const errorData = await response.json().catch(() => ({ detail: response.statusText }));
+      throw new Error(errorData.detail || `HTTP Error ${response.status}`);
+    } else {
+      const text = await response.text();
+      throw new Error(`HTTP Error ${response.status}: ${text.slice(0, 100)}...`);
+    }
+  }
+
+  if (!isJson) {
+    const text = await response.text();
+    if (text.trim().toLowerCase().startsWith("<!doctype html>")) {
+      throw new Error(`API returned an HTML page. Ensure the backend is running and the API proxy is configured correctly.`);
+    }
+    throw new Error(`API returned an unexpected non-JSON response.`);
   }
 
   return response.json() as Promise<T>;

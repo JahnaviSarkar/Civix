@@ -100,15 +100,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.middleware("http")
-async def vercel_path_rewrite(request: Request, call_next):
-    # Vercel rewrites may set PATH_INFO to /api/index.py
-    if request.url.path in ["/api/index.py", "/index.py"]:
-        path_param = request.query_params.get("vercel_path")
-        if path_param:
-            request.scope["path"] = f"/api/{path_param}"
-    return await call_next(request)
-
 # Mount Routers (with /api prefix)
 app.include_router(auth_router, prefix=settings.API_V1_STR)
 app.include_router(complaints_router, prefix=settings.API_V1_STR)
