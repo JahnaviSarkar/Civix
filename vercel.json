@@ -3,18 +3,14 @@
   "buildCommand": "cd frontend/app && npm install && npm run build",
   "outputDirectory": "frontend/app/dist",
   "functions": {
-    "api/index.py": {
+    "api/**/*.py": {
       "includeFiles": "backend/**"
     }
   },
-  "routes": [
+  "rewrites": [
     {
-      "src": "/api/(.*)",
-      "dest": "/api/index.py"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 }
