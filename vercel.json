@@ -9,8 +9,8 @@
   },
   "rewrites": [
     {
-      "source": "/api/(.*)",
-      "destination": "/api/index.py?vercel_path=$1"
+      "source": "/api/(?<vercelpath>.*)",
+      "destination": "/api/index.py?vercel_path=$vercelpath"
     },
     {
       "source": "/(.*)",
