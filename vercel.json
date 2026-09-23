@@ -3,7 +3,7 @@
   "buildCommand": "cd frontend/app && npm install && npm run build",
   "outputDirectory": "frontend/app/dist",
   "functions": {
-    "api/**/*.py": {
+    "api/index.py": {
       "includeFiles": "backend/**"
     }
   },
