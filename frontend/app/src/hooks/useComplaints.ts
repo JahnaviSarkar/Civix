@@ -1,13 +1,16 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { fetchComplaints, fetchComplaintById, createComplaint, type CreateComplaintInput, assignComplaint, resolveComplaint, fetchCrewMembers } from "../api/complaints";
+import { fetchComplaints, fetchComplaintById, createComplaint, type CreateComplaintInput, assignComplaint, resolveComplaint, fetchCrewMembers, rateComplaint } from "../api/complaints";
+import { useAuth } from "./useAuth";
 import type { Complaint, User } from "../types";
 
 export function useComplaints() {
   const queryClient = useQueryClient();
+  const { role } = useAuth();
 
   const complaintsQuery = useQuery<Complaint[]>({
-    queryKey: ["complaints"],
-    queryFn: fetchComplaints
+    queryKey: ["complaints", role || "citizen"],
+    queryFn: fetchComplaints,
+    refetchInterval: 3000
   });
 
   const createComplaintMutation = useMutation({
@@ -67,3 +70,16 @@ export function useCrewMembers() {
     queryFn: fetchCrewMembers
   });
 }
+
+export function useRateComplaint() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ complaintId, score, feedback }: { complaintId: number; score: number; feedback?: string }) =>
+      rateComplaint(complaintId, score, feedback),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["complaints"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboardStats"] });
+    }
+  });
+}
+

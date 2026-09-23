@@ -141,3 +141,14 @@ def test_get_firebase_app_uninitialized_raises_503(monkeypatch):
 
     assert exc_info.value.status_code == 503
     assert "Authentication service unavailable" in exc_info.value.detail
+
+def test_demo_token_sanitization_and_byte_string():
+    from app.config import settings
+    settings.ENABLE_DEMO_TOKENS = True
+    for raw_format in ["demo-citizen", "b'demo-citizen'", '"demo-citizen"', "DEMO-CITIZEN"]:
+        headers = {"Authorization": f"Bearer {raw_format}"}
+        response = client.get("/api/auth/me", headers=headers)
+        assert response.status_code == 200
+        data = response.json()
+        assert data["role"] == "citizen"
+

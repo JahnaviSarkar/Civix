@@ -21,8 +21,16 @@ from app.schemas.resolution import ResolutionCreate, VerificationRequest
 from app.routers.crew import resolve_task
 from app.routers.admin import verify_complaint_resolution
 
+import logging
+
+logger = logging.getLogger("civix.security")
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    if settings.ENABLE_DEMO_TOKENS:
+        logger.warning("DEMO TOKENS ENABLED - DO NOT USE IN PRODUCTION")
+        print("[SECURITY WARNING] DEMO TOKENS ENABLED - DO NOT USE IN PRODUCTION")
+
     try:
         # Seed initial demo users & data into Firestore repository ONLY if explicitly enabled
         if settings.ENABLE_DEMO_SEEDING and not FirestoreRepository.get_user_by_uid("demo_uid_citizen"):

@@ -35,7 +35,7 @@ export async function fetchCurrentUser(): Promise<User> {
 }
 
 export async function assignComplaint(complaintId: number, crewId: number, notes?: string): Promise<Complaint> {
-  return apiRequest<Complaint>(`/admin/assign`, {
+  return apiRequest<Complaint>(`/complaints/${complaintId}/assign`, {
     method: "POST",
     body: JSON.stringify({
       complaint_id: complaintId,
@@ -47,7 +47,7 @@ export async function assignComplaint(complaintId: number, crewId: number, notes
 }
 
 export async function resolveComplaint(complaintId: number, notes: string, afterImageUrl?: string): Promise<Complaint> {
-  return apiRequest<Complaint>(`/crew/resolve/${complaintId}`, {
+  return apiRequest<Complaint>(`/complaints/${complaintId}/resolve`, {
     method: "POST",
     body: JSON.stringify({
       notes,
@@ -60,3 +60,11 @@ export async function resolveComplaint(complaintId: number, notes: string, after
 export async function fetchCrewMembers(): Promise<User[]> {
   return apiRequest<User[]>("/admin/crews");
 }
+
+export async function rateComplaint(complaintId: number, score: number, feedback?: string): Promise<Complaint> {
+  return apiRequest<Complaint>(`/complaints/${complaintId}/rate`, {
+    method: "POST",
+    body: JSON.stringify({ score, feedback })
+  });
+}
+

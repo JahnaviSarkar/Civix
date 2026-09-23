@@ -29,13 +29,17 @@ def get_firebase_app():
                 }
                 cred = credentials.Certificate(cred_dict)
                 firebase_admin.initialize_app(cred)
+                logger.info("Firebase Admin App initialized successfully. [CREDENTIAL SOURCE: Environment Variables (.env / System)]")
             else:
                 key_path = os.path.join(os.path.dirname(__file__), "..", "..", "serviceAccountKey.json")
-                if os.path.exists(key_path):
-                    cred = credentials.Certificate(key_path)
+                key_path_abs = os.path.abspath(key_path)
+                if os.path.exists(key_path_abs):
+                    cred = credentials.Certificate(key_path_abs)
                     firebase_admin.initialize_app(cred)
+                    logger.info(f"Firebase Admin App initialized successfully. [CREDENTIAL SOURCE: Key File -> {key_path_abs}]")
                 elif settings.FIREBASE_PROJECT_ID:
                     firebase_admin.initialize_app(options={'projectId': settings.FIREBASE_PROJECT_ID})
+                    logger.info(f"Firebase Admin App initialized successfully. [CREDENTIAL SOURCE: Default Project Options -> {settings.FIREBASE_PROJECT_ID}]")
         except Exception as e:
             logger.error(f"Firebase Admin Initialization Error: {e}")
             raise HTTPException(
@@ -56,18 +60,39 @@ def get_current_user(
     token: HTTPAuthorizationCredentials = Depends(security)
 ) -> Dict[str, Any]:
     get_firebase_app()
-    raw_token = token.credentials
+    raw_token = token.credentials if (token and token.credentials) else ""
+    if isinstance(raw_token, bytes):
+        raw_token = raw_token.decode("utf-8", errors="ignore")
+    raw_token = str(raw_token).strip()
+    
+    # Strip quotes and byte prefixes if token string looks like b'demo-citizen' or "demo-citizen"
+    if (raw_token.startswith("b'") and raw_token.endswith("'")) or (raw_token.startswith('b"') and raw_token.endswith('"')):
+        raw_token = raw_token[2:-1]
+    raw_token = raw_token.strip("'").strip('"').strip()
+
     firebase_uid = None
     email = None
     name = "Civix User"
 
-    # Support local demo tokens (e.g. demo-citizen, demo-crew, demo-admin) ONLY when enabled
-    if settings.ENABLE_DEMO_TOKENS and raw_token.startswith("demo-"):
-        role_str = raw_token.replace("demo-", "")
+    # Support local demo tokens (e.g. demo-citizen, demo-crew, demo-admin)
+    if raw_token.lower().startswith("demo-"):
+        if not settings.ENABLE_DEMO_TOKENS:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Demo authentication is disabled on this server.",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        role_str = raw_token.lower().replace("demo-", "").strip()
         if role_str in ["citizen", "crew", "admin"]:
             firebase_uid = f"demo_uid_{role_str}"
             email = f"{role_str}@smartwaste.local"
             name = f"Demo {role_str.capitalize()}"
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail=f"Invalid demo role '{role_str}'. Allowed demo roles: citizen, crew, admin",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
 
     if not firebase_uid:
         try:

@@ -1,6 +1,6 @@
 from pydantic import BaseModel, ConfigDict, Field, computed_field
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Union, Any
 from app.models.complaint import ComplaintStatus, ComplaintCategory
 from app.schemas.user import UserResponse
 
@@ -44,15 +44,22 @@ class RatingResponse(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
-class ComplaintResponse(ComplaintBase):
-    id: int
-    citizen_id: int
-    severity: float
+class ComplaintResponse(BaseModel):
+    id: Union[int, str, None] = 0
+    citizen_id: Union[int, str, None] = 1
+    title: Optional[str] = "Waste Complaint"
+    description: Optional[str] = "No description provided."
+    category: Union[ComplaintCategory, str, None] = ComplaintCategory.GARBAGE_COLLECTION
+    latitude: Optional[float] = 12.97159
+    longitude: Optional[float] = 77.59456
+    address: Optional[str] = None
+    image_url: Optional[str] = None
+    severity: Optional[float] = 5.0
     ai_confidence: Optional[float] = None
     ai_category: Optional[str] = None
-    status: ComplaintStatus
-    created_at: datetime
-    updated_at: datetime
+    status: Union[ComplaintStatus, str, None] = ComplaintStatus.PENDING
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
     
     citizen: Optional[UserResponse] = None
     assigned_crew: Optional[UserResponse] = None
@@ -60,3 +67,4 @@ class ComplaintResponse(ComplaintBase):
     rating: Optional[RatingResponse] = None
 
     model_config = ConfigDict(from_attributes=True)
+

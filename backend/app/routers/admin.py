@@ -28,9 +28,13 @@ def assign_crew_direct(
     body: AssignmentCreate,
     current_user: Dict[str, Any] = Depends(require_admin)
 ):
+    if not body.complaint_id:
+        raise HTTPException(status_code=400, detail="Missing complaint_id in assignment payload")
+
     complaint = FirestoreRepository.get_complaint_by_id(body.complaint_id)
     if not complaint:
         raise HTTPException(status_code=404, detail="Complaint not found")
+
 
     crew_user = FirestoreRepository.get_user_by_id(body.crew_id)
     if not crew_user or (crew_user.get("role") or "").lower() != UserRole.CREW.value:

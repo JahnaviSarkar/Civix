@@ -6,13 +6,18 @@ import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
 import { LoadingState } from '../components/ui/LoadingState';
 import { ComplaintMap } from '../components/ComplaintMap';
-import { useComplaints } from '../hooks/useComplaints';
+import { useComplaints, useRateComplaint } from '../hooks/useComplaints';
 import { useAuth } from '../hooks/useAuth';
 import { ComplaintCategory } from '../types';
 
 export const CitizenDashboard: React.FC = () => {
   const { user } = useAuth();
   const { complaints, isLoading, createComplaint, isCreating } = useComplaints();
+  const rateMutation = useRateComplaint();
+  const [ratingScore, setRatingScore] = useState<Record<number, number>>({});
+  const [ratingFeedback, setRatingFeedback] = useState<Record<number, string>>({});
+  const [ratedIds, setRatedIds] = useState<number[]>([]);
+
 
   const [showReportModal, setShowReportModal] = useState(false);
   const [title, setTitle] = useState('');
@@ -90,7 +95,7 @@ export const CitizenDashboard: React.FC = () => {
         
         <div className="bg-white p-6 rounded-3xl border border-[#D9F0FF] shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-black text-[#111827]">Welcome back, {user?.name || 'Citizen'}! 👋</h1>
+            <h1 className="text-2xl font-black text-[#111827]">Welcome back, {user?.name || 'Citizen'}!</h1>
             <p className="text-xs text-slate-500 font-semibold mt-1">Together for a cleaner, healthier city.</p>
           </div>
           <Button variant="matcha" size="lg" onClick={() => setShowReportModal(true)} className="shadow-sm">
@@ -100,8 +105,8 @@ export const CitizenDashboard: React.FC = () => {
 
         {formSuccess && (
           <div className="p-4 bg-[#C7DFA3] text-[#111827] text-xs font-bold rounded-2xl border border-[#b5d68d] flex items-center justify-between">
-            <span>✓ Complaint submitted successfully! MobileNetV2 AI analysis assigned preliminary severity.</span>
-            <button onClick={() => setFormSuccess(false)} className="cursor-pointer">✕</button>
+            <span>Complaint submitted successfully! MobileNetV2 AI analysis assigned preliminary severity.</span>
+            <button onClick={() => setFormSuccess(false)} className="cursor-pointer font-black text-sm">Close</button>
           </div>
         )}
 
@@ -118,7 +123,7 @@ export const CitizenDashboard: React.FC = () => {
             <div className="flex items-center justify-between border-b border-[#D9F0FF] pb-3">
               <h3 className="font-black text-[#111827] text-base">File New Civic Complaint</h3>
               <Button variant="ghost" size="sm" onClick={() => setShowReportModal(false)}>
-                ✕ Close
+                Close
               </Button>
             </div>
 
@@ -156,7 +161,7 @@ export const CitizenDashboard: React.FC = () => {
                 <div className="flex items-center justify-between mb-1">
                   <label className="block text-xs font-black uppercase text-[#111827]">Location Address</label>
                   <button type="button" onClick={handleGetLocation} className="text-[10px] text-[#89B9E6] font-bold underline cursor-pointer">
-                    📍 Use My GPS Location
+                    Use My GPS Location
                   </button>
                 </div>
                 <input
@@ -227,7 +232,7 @@ export const CitizenDashboard: React.FC = () => {
                             <span className="font-bold text-sm text-[#111827]">{item.title}</span>
                             <Badge variant={item.status.toLowerCase() as any}>{item.status}</Badge>
                           </div>
-                          <p className="text-xs text-slate-600 font-semibold mb-1">📍 {item.address}</p>
+                          <p className="text-xs text-slate-600 font-semibold mb-1">{item.address}</p>
                           <p className="text-xs text-slate-500">{item.description}</p>
                         </div>
                         <span className="px-2.5 py-1 bg-[#D9F0FF] text-[#111827] text-xs font-bold rounded-lg border border-[#89B9E6]">
@@ -247,7 +252,7 @@ export const CitizenDashboard: React.FC = () => {
 
                       {item.ai_category && (
                         <div className="p-2.5 bg-[#FFFDF7] rounded-xl border border-[#89B9E6] text-xs flex items-center justify-between text-[#111827]">
-                          <span className="font-bold">🤖 AI Classification: {item.ai_category}</span>
+                          <span className="font-bold">AI Classification: {item.ai_category}</span>
                           <span className="font-semibold text-slate-500">Confidence: {(item.ai_confidence ? item.ai_confidence * 100 : 85).toFixed(1)}%</span>
                         </div>
                       )}
@@ -255,7 +260,7 @@ export const CitizenDashboard: React.FC = () => {
                       {(item.resolution?.resolution_image_url || item.resolution?.after_image_url || item.after_image_url) && (
                         <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-200 text-xs space-y-2">
                           <span className="font-bold text-emerald-800 flex items-center gap-1">
-                            ✓ Sanitation Crew Resolution Proof (After Work Photo)
+                            Sanitation Crew Resolution Proof (After Work Photo)
                           </span>
                           <img
                             src={item.resolution?.resolution_image_url || item.resolution?.after_image_url || item.after_image_url}
@@ -267,6 +272,55 @@ export const CitizenDashboard: React.FC = () => {
                           )}
                         </div>
                       )}
+
+                      {String(item.status) === 'VERIFIED' && (
+                        <div className="p-3 bg-[#FFFDF7] rounded-xl border border-[#89B9E6] text-xs space-y-2">
+                          <p className="font-bold text-[#111827]">Rate Sanitation Service Quality</p>
+                          {ratedIds.includes(item.id) || item.rating ? (
+                            <p className="text-emerald-700 font-bold">Feedback submitted. Thank you for making your city cleaner!</p>
+                          ) : (
+                            <div className="flex flex-wrap items-center gap-2">
+                              <select
+                                value={ratingScore[item.id] || 5}
+                                onChange={(e) => setRatingScore({ ...ratingScore, [item.id]: Number(e.target.value) })}
+                                className="px-2 py-1 bg-white border border-[#89B9E6] rounded-lg font-bold text-[#111827]"
+                              >
+                                <option value={5}>5 Stars - Excellent</option>
+                                <option value={4}>4 Stars - Good</option>
+                                <option value={3}>3 Stars - Satisfactory</option>
+                                <option value={2}>2 Stars - Needs Improvement</option>
+                                <option value={1}>1 Star - Poor</option>
+                              </select>
+                              <input
+                                type="text"
+                                placeholder="Optional feedback note..."
+                                value={ratingFeedback[item.id] || ''}
+                                onChange={(e) => setRatingFeedback({ ...ratingFeedback, [item.id]: e.target.value })}
+                                className="px-2 py-1 bg-white border border-[#89B9E6] rounded-lg text-xs flex-1 text-[#111827]"
+                              />
+                              <Button
+                                size="sm"
+                                variant="matcha"
+                                onClick={async () => {
+                                  try {
+                                    await rateMutation.mutateAsync({
+                                      complaintId: item.id,
+                                      score: ratingScore[item.id] || 5,
+                                      feedback: ratingFeedback[item.id] || 'Verified resolution satisfactory.'
+                                    });
+                                    setRatedIds([...ratedIds, item.id]);
+                                  } catch (err) {
+                                    alert("Rating error: " + err);
+                                  }
+                                }}
+                              >
+                                Submit Feedback
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
                     </div>
                   ))}
                 </div>

@@ -39,10 +39,15 @@ def start_task(
         "status": ComplaintStatus.IN_PROGRESS.value,
         "assigned_crew_id": current_user["id"],
         "assigned_crew": {
+            "id": current_user.get("id", 2),
+            "firebase_uid": current_user.get("firebase_uid", "crew_uid"),
             "name": current_user.get("name", "Crew Team"),
-            "email": current_user.get("email", "")
+            "email": current_user.get("email", "crew@smartwaste.local"),
+            "role": current_user.get("role", "crew"),
+            "created_at": current_user.get("created_at", "")
         }
     }
+
     updated = FirestoreRepository.update_complaint(complaint_id, updates)
     return updated
 

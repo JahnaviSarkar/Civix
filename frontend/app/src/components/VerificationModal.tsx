@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { X } from 'lucide-react';
 import { type Complaint } from '../types';
 import { Button } from './ui/Button';
 import { Badge } from './ui/Badge';
@@ -76,12 +77,14 @@ export const VerificationModal: React.FC<VerificationModalProps> = ({
         {/* Modal Header */}
         <div className="px-6 py-4 bg-white border-b border-[#D9F0FF] flex items-center justify-between sticky top-0 z-10 shadow-xs">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-[#D9F0FF] flex items-center justify-center text-xl text-[#111827] border border-[#89B9E6]">
-              🔍
+            <div className="w-10 h-10 rounded-2xl bg-[#D9F0FF] flex items-center justify-center text-[#111827] border border-[#89B9E6]">
+              <svg className="w-5 h-5 text-[#89B9E6]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+              </svg>
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-lg font-black text-[#111827]">Resolution Verification</h2>
+                <h2 className="text-lg font-black text-[#111827]">Needs Feedback & Proof Verification</h2>
                 <span className="text-xs px-2.5 py-0.5 rounded-md bg-[#D9F0FF] text-[#111827] border border-[#89B9E6] font-mono font-bold">
                   #CIV-{complaint.id}
                 </span>
@@ -97,10 +100,10 @@ export const VerificationModal: React.FC<VerificationModalProps> = ({
 
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-500 font-bold flex items-center justify-center transition-colors"
+            className="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition-colors"
             title="Close dialog (Esc)"
           >
-            ✕
+            <X className="w-4 h-4" />
           </button>
         </div>
 
@@ -110,19 +113,27 @@ export const VerificationModal: React.FC<VerificationModalProps> = ({
           {/* Status Banners */}
           {isAlreadyVerified && (
             <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-200 text-xs font-bold text-emerald-900 flex items-center gap-3">
-              <span className="text-base bg-emerald-200 text-emerald-800 w-7 h-7 rounded-full flex items-center justify-center font-black">✓</span>
+              <span className="bg-emerald-200 text-emerald-800 w-7 h-7 rounded-full flex items-center justify-center font-black shrink-0">
+                <svg className="w-4 h-4 text-emerald-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
+                </svg>
+              </span>
               <div>
-                <p className="font-black">Resolution Verified</p>
-                <p className="text-[11px] text-emerald-700 font-medium">This issue has been officially inspected, approved, and verified by Municipal Admin.</p>
+                <p className="font-black">Resolution Verified & Citizen Notified</p>
+                <p className="text-[11px] text-emerald-700 font-medium">This issue has been approved by Municipal Admin and unlocked for citizen rating.</p>
               </div>
             </div>
           )}
 
           {isAlreadyRejected && (
             <div className="p-4 bg-rose-50 rounded-2xl border border-rose-200 text-xs font-bold text-rose-900 flex items-start gap-3">
-              <span className="text-base bg-rose-200 text-rose-800 w-7 h-7 rounded-full flex items-center justify-center font-black shrink-0">✕</span>
+              <span className="bg-rose-200 text-rose-800 w-7 h-7 rounded-full flex items-center justify-center font-black shrink-0">
+                <svg className="w-4 h-4 text-rose-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </span>
               <div>
-                <p className="font-black">Resolution Rejected — Returned to Sanitation Crew</p>
+                <p className="font-black">Resolution Rejected — Sent Back to Crew Task List</p>
                 <p className="text-[11px] text-rose-700 font-semibold mt-0.5">
                   Required Fixings: "{complaint.resolution?.rejection_reason || 'Task sent back for further cleaning.'}"
                 </p>
@@ -133,7 +144,7 @@ export const VerificationModal: React.FC<VerificationModalProps> = ({
           {/* Side-by-side Photo Comparison */}
           <div>
             <h3 className="text-xs font-black uppercase tracking-wider text-slate-500 mb-3 flex items-center gap-1.5">
-              <span>📷 Picture Proof Comparison</span>
+              <span>Side-by-Side Proof Inspection</span>
               <span className="text-[10px] text-slate-400 font-normal normal-case">(Click any photo to enlarge)</span>
             </h3>
 
@@ -144,7 +155,7 @@ export const VerificationModal: React.FC<VerificationModalProps> = ({
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-black uppercase text-slate-700 flex items-center gap-1">
-                      📸 1. Citizen Report (Before)
+                      1. Citizen Report (BEFORE)
                     </span>
                     {complaint.citizen?.name && (
                       <span className="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-semibold border border-slate-200">
@@ -164,12 +175,11 @@ export const VerificationModal: React.FC<VerificationModalProps> = ({
                         className="w-full h-full object-cover group-hover:opacity-90 transition-opacity" 
                       />
                       <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-bold gap-1">
-                        🔍 Click to Expand
+                        Click to Expand
                       </div>
                     </div>
                   ) : (
                     <div className="w-full h-52 bg-slate-50 rounded-xl border border-dashed border-slate-300 flex flex-col items-center justify-center text-xs text-slate-400 font-semibold p-4 text-center">
-                      <span className="text-3xl mb-1">🖼️</span>
                       <span>No initial photo uploaded by citizen</span>
                     </div>
                   )}
@@ -186,7 +196,7 @@ export const VerificationModal: React.FC<VerificationModalProps> = ({
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-black uppercase text-[#111827] flex items-center gap-1">
-                      ✅ 2. Crew Work Proof (After)
+                      2. Crew Work Proof (AFTER)
                     </span>
                     <span className="text-[10px] text-emerald-800 font-black uppercase bg-emerald-100 px-2.5 py-0.5 rounded border border-emerald-300">
                       Work Proof
@@ -204,12 +214,11 @@ export const VerificationModal: React.FC<VerificationModalProps> = ({
                         className="w-full h-full object-cover group-hover:opacity-90 transition-opacity" 
                       />
                       <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-bold gap-1">
-                        🔍 Click to Expand
+                        Click to Expand
                       </div>
                     </div>
                   ) : (
                     <div className="w-full h-52 bg-amber-50 rounded-xl border border-dashed border-amber-300 flex flex-col items-center justify-center text-xs text-amber-700 font-semibold p-4 text-center">
-                      <span className="text-3xl mb-1">⚠️</span>
                       <span>No work proof photo uploaded yet by crew</span>
                     </div>
                   )}
@@ -228,10 +237,10 @@ export const VerificationModal: React.FC<VerificationModalProps> = ({
           {!isAlreadyVerified && (
             <div className="p-4 bg-white rounded-2xl border border-[#89B9E6] space-y-3 shadow-xs">
               <label className="block text-xs font-black uppercase tracking-wide text-[#111827]">
-                Admin Review & Necessary Fixings Feedback
+                Admin Review Feedback / Required Fixings Notes
               </label>
               <p className="text-[11px] text-slate-500 font-semibold -mt-2">
-                If work is incomplete or unsatisfactory, explain the exact fixings required. This feedback will pop up directly on the assigned crew member's dashboard.
+                If unsatisfying, enter required fixes. This will alert the crew on their dashboard to redo the task!
               </p>
               <textarea
                 rows={3}
@@ -259,7 +268,7 @@ export const VerificationModal: React.FC<VerificationModalProps> = ({
                 isLoading={isVerifying}
                 onClick={handleReject}
               >
-                ✕ Reject & Send Back to Crew
+                Reject & Send Back to Crew
               </Button>
               
               <Button
@@ -268,7 +277,7 @@ export const VerificationModal: React.FC<VerificationModalProps> = ({
                 isLoading={isVerifying}
                 onClick={handleApprove}
               >
-                ✓ Approve & Verify Resolution
+                Approve & Send Citizen Notification
               </Button>
             </div>
           )}
@@ -292,9 +301,9 @@ export const VerificationModal: React.FC<VerificationModalProps> = ({
             <img src={expandedImage} alt="Expanded Full View" className="max-w-full max-h-[85vh] object-contain rounded-xl" />
             <button 
               onClick={() => setExpandedImage(null)}
-              className="absolute top-3 right-3 bg-white/20 hover:bg-white/40 text-white rounded-full w-9 h-9 flex items-center justify-center font-black text-sm transition-colors"
+              className="absolute top-3 right-3 bg-white/20 hover:bg-white/40 text-white rounded-full w-9 h-9 flex items-center justify-center transition-colors"
             >
-              ✕
+              <X className="w-5 h-5" />
             </button>
           </div>
         </div>

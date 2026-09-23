@@ -36,6 +36,18 @@ def get_firestore_client():
         return _firestore_client
 
     if not firebase_admin._apps:
+        has_email = bool(settings.FIREBASE_CLIENT_EMAIL and settings.FIREBASE_CLIENT_EMAIL.strip())
+        has_pk = bool(settings.FIREBASE_PRIVATE_KEY and settings.FIREBASE_PRIVATE_KEY.strip())
+        has_literal_n = '\\n' in settings.FIREBASE_PRIVATE_KEY if has_pk else False
+        has_real_n = '\n' in settings.FIREBASE_PRIVATE_KEY if has_pk else False
+
+        logger.info(
+            f"Firebase Runtime Env Check -> FIREBASE_CLIENT_EMAIL present: {has_email}, "
+            f"FIREBASE_PRIVATE_KEY present: {has_pk}, "
+            f"Has literal '\\\\n': {has_literal_n}, "
+            f"Has real '\\n': {has_real_n}"
+        )
+
         try:
             if settings.FIREBASE_PROJECT_ID and settings.FIREBASE_CLIENT_EMAIL and settings.FIREBASE_PRIVATE_KEY:
                 private_key = settings.FIREBASE_PRIVATE_KEY.strip('"').strip("'").replace('\\n', '\n')
@@ -47,21 +59,23 @@ def get_firestore_client():
                 }
                 cred = credentials.Certificate(cred_dict)
                 firebase_admin.initialize_app(cred)
+                logger.info("Firebase Admin App initialized successfully. [CREDENTIAL SOURCE: Environment Variables (.env / System)]")
             else:
                 key_path = os.path.join(os.path.dirname(__file__), "..", "..", "serviceAccountKey.json")
-                if os.path.exists(key_path):
-                    cred = credentials.Certificate(key_path)
+                key_path_abs = os.path.abspath(key_path)
+                if os.path.exists(key_path_abs):
+                    cred = credentials.Certificate(key_path_abs)
                     firebase_admin.initialize_app(cred)
+                    logger.info(f"Firebase Admin App initialized successfully. [CREDENTIAL SOURCE: Key File -> {key_path_abs}]")
                 elif settings.FIREBASE_PROJECT_ID:
                     firebase_admin.initialize_app(options={'projectId': settings.FIREBASE_PROJECT_ID})
+                    logger.info(f"Firebase Admin App initialized successfully. [CREDENTIAL SOURCE: Default Project Options -> {settings.FIREBASE_PROJECT_ID}]")
         except Exception as e:
-            logger.warning(f"Firebase Admin Initialization Warning: {e}")
+            logger.error(f"Firebase Admin initialization failed: {e}")
 
     try:
-        if settings.FIREBASE_PROJECT_ID:
-            _firestore_client = firestore.client(project=settings.FIREBASE_PROJECT_ID)
-        else:
-            _firestore_client = firestore.client()
+        _firestore_client = firestore.client()
+        logger.info("Firestore client created successfully.")
         return _firestore_client
     except Exception as e:
         logger.error(f"Failed to initialize Firestore client: {e}")
@@ -331,8 +345,17 @@ class FirestoreRepository:
                 ref = ref.where("assigned_crew_id", "==", crew_id)
 
             docs = ref.get()
-            results = [doc.to_dict() for doc in docs]
-            results.sort(key=lambda x: x.get("created_at", ""), reverse=True)
+            results = []
+            for doc in docs:
+                d = doc.to_dict()
+                for k in ["created_at", "updated_at"]:
+                    if hasattr(d.get(k), "isoformat"):
+                        d[k] = d[k].isoformat()
+                if isinstance(d.get("resolution"), dict) and hasattr(d["resolution"].get("resolved_at"), "isoformat"):
+                    d["resolution"]["resolved_at"] = d["resolution"]["resolved_at"].isoformat()
+                results.append(d)
+
+            results.sort(key=lambda x: str(x.get("created_at") or ""), reverse=True)
             return results
 
         if _is_testing and _mock_store is not None:
@@ -347,7 +370,7 @@ class FirestoreRepository:
                 if crew_id is not None and c.get("assigned_crew_id") != crew_id:
                     continue
                 results.append(dict(c))
-            results.sort(key=lambda x: x.get("created_at", ""), reverse=True)
+            results.sort(key=lambda x: str(x.get("created_at") or ""), reverse=True)
             return results
 
         raise RuntimeError("Cloud Firestore client is uninitialized.")

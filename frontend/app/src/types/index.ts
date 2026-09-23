@@ -57,9 +57,17 @@ export interface Complaint {
     name: string;
     email: string;
   };
+  assigned_crew_id?: number;
+  assigned_crew?: {
+    id: number;
+    name: string;
+    email: string;
+  };
   resolution?: Resolution;
   after_image_url?: string;
+  rating?: Rating;
 }
+
 
 export interface Assignment {
   id: number;
@@ -101,6 +109,7 @@ export interface DashboardStats {
   pending_complaints: number;
   in_progress_complaints: number;
   resolved_complaints: number;
+  verified_complaints?: number;
   active_crews: number;
   resolution_rate_percentage: number;
   average_resolution_hours: number;

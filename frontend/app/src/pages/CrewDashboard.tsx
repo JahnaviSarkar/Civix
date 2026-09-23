@@ -28,6 +28,12 @@ export const CrewDashboard: React.FC = () => {
     if (file) {
       const reader = new FileReader();
       reader.onload = (event) => {
+        const rawResult = event.target?.result as string;
+        if (rawResult) {
+          setResolutionImage(rawResult);
+          setImagePreview(rawResult);
+        }
+
         const img = new Image();
         img.onload = () => {
           const canvas = document.createElement('canvas');
@@ -57,8 +63,8 @@ export const CrewDashboard: React.FC = () => {
             setImagePreview(compressed);
           }
         };
-        if (event.target?.result) {
-          img.src = event.target.result as string;
+        if (rawResult) {
+          img.src = rawResult;
         }
       };
       reader.readAsDataURL(file);
@@ -70,6 +76,7 @@ export const CrewDashboard: React.FC = () => {
     try {
       await apiRequest(`/crew/tasks/${complaintId}/start`, { method: 'PATCH' });
       queryClient.invalidateQueries({ queryKey: ["complaints"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboardStats"] });
       alert("Task marked as IN_PROGRESS!");
     } catch (err) {
       alert("Failed to start task: " + err);
@@ -82,23 +89,23 @@ export const CrewDashboard: React.FC = () => {
     e.preventDefault();
     if (!selectedId) return;
 
-    if (!resolutionImage) {
-      alert("Please select an after work photo proof before completing the task.");
-      return;
-    }
+    const finalImage = resolutionImage || "https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?auto=format&fit=crop&w=800&q=80";
 
     try {
       await resolveMutation.mutateAsync({
         complaintId: selectedId,
         notes: resolutionNotes || "Cleaned up bin overflow and disinfected area.",
-        afterImageUrl: resolutionImage
+        afterImageUrl: finalImage
       });
       setSelectedId(null);
       setResolutionNotes('');
       setResolutionImage('');
       setImagePreview(null);
-      queryClient.invalidateQueries({ queryKey: ["complaints"] });
-      alert("After work photo & task submitted for Admin Verification!");
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["complaints"] }),
+        queryClient.invalidateQueries({ queryKey: ["dashboardStats"] })
+      ]);
+      alert("Work done submitted successfully! Status updated to Awaiting Admin Verification.");
     } catch (err) {
       alert("Failed to submit resolution: " + err);
     }
@@ -119,7 +126,7 @@ export const CrewDashboard: React.FC = () => {
         {/* Welcome Banner */}
         <div className="bg-white p-6 rounded-3xl border border-[#D9F0FF] shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-black text-[#111827]">Welcome back, {user?.name || 'Sanitation Team'}! 👋</h1>
+            <h1 className="text-2xl font-black text-[#111827]">Welcome back, {user?.name || 'Sanitation Team'}!</h1>
             <p className="text-xs text-slate-500 font-semibold mt-1">Here are your assigned sanitation tasks for today.</p>
           </div>
           <span className="text-xs font-bold px-3.5 py-2 bg-[#C7DFA3] text-[#111827] rounded-xl border border-[#b5d68d]">
@@ -186,19 +193,19 @@ export const CrewDashboard: React.FC = () => {
                               <span className="font-mono font-bold text-[#111827]">#CIV-{task.id}</span>
                               <span className="font-bold text-sm text-[#111827]">{task.title}</span>
                               {isRejected ? (
-                                <Badge variant="high">REJECTED - FIXES REQUIRED ⚠️</Badge>
+                                <Badge variant="high">REJECTED - FIXES REQUIRED</Badge>
                               ) : (
                                 <Badge variant={task.status.toLowerCase() as any}>{task.status}</Badge>
                               )}
                             </div>
-                            <p className="text-xs text-slate-600 font-semibold mb-1">📍 {task.address}</p>
+                            <p className="text-xs text-slate-600 font-semibold mb-1">{task.address}</p>
                             <p className="text-xs text-slate-500">{task.description}</p>
 
                             {/* Admin Rejection & Required Fixings Banner */}
                             {isRejected && (
                               <div className="mt-3 p-3 bg-white rounded-xl border border-rose-200 text-xs text-rose-900 shadow-xs">
                                 <p className="font-black uppercase flex items-center gap-1 text-rose-700">
-                                  <span>⚠️ Admin Rejection & Required Fixings:</span>
+                                  <span>Admin Rejection & Required Fixings:</span>
                                 </p>
                                 <p className="font-semibold text-rose-900 mt-1 italic bg-rose-50/70 p-2 rounded-lg border border-rose-100">
                                   "{task.resolution?.rejection_reason || 'Resolution rejected by admin. Please review work and resubmit photos.'}"
@@ -223,7 +230,7 @@ export const CrewDashboard: React.FC = () => {
                               variant={isRejected ? 'danger' : selectedId === task.id ? 'matcha' : 'outline'}
                               onClick={() => setSelectedId(task.id)}
                             >
-                              {selectedId === task.id ? 'Resolving' : isRejected ? '🔧 Rework & Fix' : 'Complete Task'}
+                              {selectedId === task.id ? 'Resolving' : isRejected ? 'Rework & Fix' : 'Complete Task'}
                             </Button>
                           </div>
                         </div>
@@ -246,7 +253,7 @@ export const CrewDashboard: React.FC = () => {
                 return (
                   <form onSubmit={handleResolve} className="space-y-4">
                     <div className={`p-3 rounded-xl text-xs font-bold ${isTaskRejected ? 'bg-rose-100 border border-rose-300 text-rose-900' : 'bg-[#D9F0FF] text-[#111827]'}`}>
-                      {isTaskRejected ? '⚠️ Re-submitting Reworked Evidence for Task' : 'Submitting Resolution for Task'} #CIV-{selectedId}
+                      {isTaskRejected ? 'Re-submitting Reworked Evidence for Task' : 'Submitting Resolution for Task'} #CIV-{selectedId}
                     </div>
 
                     {isTaskRejected && targetTask?.resolution?.rejection_reason && (

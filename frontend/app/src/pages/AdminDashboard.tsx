@@ -89,9 +89,9 @@ export const AdminDashboard: React.FC = () => {
 
   const filteredComplaints = complaints.filter((c) => {
     const matchesSearch =
-      c.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      c.address.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      c.category.toLowerCase().includes(searchQuery.toLowerCase());
+      (c.title?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
+      (c.address?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
+      (c.category?.toLowerCase() || '').includes(searchQuery.toLowerCase());
     
     if (!matchesSearch) return false;
     if (statusTab === 'ALL') return true;
@@ -137,8 +137,8 @@ export const AdminDashboard: React.FC = () => {
       accessor: (c: Complaint) => {
         const s = String(c.status).toUpperCase();
         if (s === 'RESOLVED') return <Badge variant="medium">Awaiting Verification</Badge>;
-        if (s === 'VERIFIED') return <Badge variant="low">Verified ✓</Badge>;
-        if (s === 'REJECTED') return <Badge variant="high">Rejected ✕</Badge>;
+        if (s === 'VERIFIED') return <Badge variant="low">Verified</Badge>;
+        if (s === 'REJECTED') return <Badge variant="high">Rejected</Badge>;
         return <Badge variant={c.status.toLowerCase() as any}>{c.status}</Badge>;
       } 
     },
@@ -153,12 +153,12 @@ export const AdminDashboard: React.FC = () => {
           )}
           {String(c.status) === 'RESOLVED' && (
             <Button size="sm" variant="matcha" onClick={() => setVerifyComplaintId(c.id)}>
-              🔍 Verify Resolution
+              Give Feedback & Verify
             </Button>
           )}
           {(String(c.status) === 'VERIFIED' || String(c.status) === 'REJECTED') && (
             <Button size="sm" variant="airy" onClick={() => setVerifyComplaintId(c.id)}>
-              👁️ View Both Proofs
+              View Both Proofs
             </Button>
           )}
         </div>
@@ -176,15 +176,18 @@ export const AdminDashboard: React.FC = () => {
         {/* Page Welcome Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-[#D9F0FF] shadow-xs">
           <div>
-            <h1 className="text-2xl font-black text-[#111827]">Welcome back, Admin! 👋</h1>
+            <h1 className="text-2xl font-black text-[#111827]">Welcome back, Admin!</h1>
             <p className="text-xs text-slate-500 font-semibold mt-1">Here's what's happening across your city today.</p>
           </div>
           <div className="flex items-center gap-3">
-            <span className="text-xs font-bold px-3.5 py-2 bg-[#D9F0FF] border border-[#89B9E6] text-[#111827] rounded-xl">
-              📅 Today: {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+            <span className="text-xs font-bold px-3.5 py-2 bg-[#D9F0FF] border border-[#89B9E6] text-[#111827] rounded-xl flex items-center gap-1.5">
+              <svg className="w-3.5 h-3.5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              <span>Today: {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
             </span>
             <Button variant="matcha" size="sm" onClick={() => window.location.reload()}>
-              🔄 Refresh
+              Refresh
             </Button>
           </div>
         </div>
@@ -195,7 +198,7 @@ export const AdminDashboard: React.FC = () => {
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-black text-[#111827] text-base">Assign Sanitation Crew Unit to #CIV-{selectedComplaintId}</h3>
               <Button variant="ghost" size="sm" onClick={() => setSelectedComplaintId(null)}>
-                ✕ Close
+                Close
               </Button>
             </div>
             <div className="flex items-center gap-4">
@@ -208,11 +211,17 @@ export const AdminDashboard: React.FC = () => {
                 {(crews || [
                   { id: 2, name: "Crew Alpha Team (North Zone)", email: "crew@smartwaste.local" },
                   { id: 4, name: "Sanitation Unit 4 (Central Zone)", email: "unit4@smartwaste.local" }
-                ]).map((cr) => (
-                  <option key={cr.id} value={cr.id}>
-                    {cr.name} ({cr.email})
-                  </option>
-                ))}
+                ]).map((cr) => {
+                  const activeWorkload = complaints.filter(
+                    c => (c.assigned_crew_id === cr.id || c.assigned_crew?.id === cr.id) &&
+                         (String(c.status) === 'ASSIGNED' || String(c.status) === 'IN_PROGRESS')
+                  ).length;
+                  return (
+                    <option key={cr.id} value={cr.id}>
+                      {cr.name} ({cr.email}) — Workload: {activeWorkload} Active {activeWorkload === 1 ? 'Task' : 'Tasks'}
+                    </option>
+                  );
+                })}
               </select>
               <Button onClick={handleAssign} variant="matcha" isLoading={assignMutation.isPending} disabled={!selectedCrewId}>
                 Confirm Task Assignment
@@ -234,30 +243,36 @@ export const AdminDashboard: React.FC = () => {
         />
 
         {/* Admin KPI Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
           <StatCard
             title="Total Complaints"
             value={statsLoading ? '...' : (stats?.total_complaints ?? complaints.length)}
             color="matcha"
-            trend="+12% from last month"
+            trend="Total Logged"
           />
           <StatCard
             title="Pending Review"
             value={statsLoading ? '...' : (stats?.pending_complaints ?? complaints.filter(c=>String(c.status)==='PENDING').length)}
             color="amber"
-            trend="-8% from last week"
+            trend="Needs Assignment"
           />
           <StatCard
             title="In Progress"
             value={statsLoading ? '...' : (stats?.in_progress_complaints ?? complaints.filter(c=>String(c.status)==='IN_PROGRESS'||String(c.status)==='ASSIGNED').length)}
             color="airy"
-            trend="+18% from last week"
+            trend="Crew Deployed"
           />
           <StatCard
-            title="Resolution Rate"
-            value={statsLoading ? '...' : `${stats?.resolution_rate_percentage ?? 78}%`}
+            title="Awaiting Verification"
+            value={complaints.filter(c=>String(c.status)==='RESOLVED').length}
             color="matcha"
-            trend="City Target 85%"
+            trend="Work Submitted by Crew"
+          />
+          <StatCard
+            title="Verified"
+            value={statsLoading ? '...' : (stats?.verified_complaints ?? complaints.filter(c=>String(c.status)==='VERIFIED').length)}
+            color="emerald"
+            trend="Fully Closed"
           />
         </div>
 
@@ -401,20 +416,20 @@ export const AdminDashboard: React.FC = () => {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setStatusTab('VERIFICATION')}
-                  className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1 ${statusTab === 'VERIFICATION' ? 'bg-[#C7DFA3] text-[#111827] border border-[#b5d68d] shadow-xs font-black' : 'text-slate-700 hover:text-[#111827]'}`}
+                  onClick={() => setStatusTab('RESOLVED')}
+                  className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${statusTab === 'RESOLVED' ? 'bg-[#C7DFA3] text-[#111827] border border-[#b5d68d] shadow-xs font-black' : 'text-slate-700 hover:text-[#111827]'}`}
                 >
-                  <span>🔍 Verification</span>
-                  <span className="px-1.5 py-0.2 text-[10px] bg-white rounded-md font-mono border border-slate-200">
-                    {complaints.filter(c => String(c.status) === 'RESOLVED' || String(c.status) === 'VERIFIED' || String(c.status) === 'REJECTED').length}
-                  </span>
+                  <span>Needs Feedback ({complaints.filter(c => String(c.status) === 'RESOLVED').length})</span>
+                  {complaints.filter(c => String(c.status) === 'RESOLVED').length > 0 && (
+                    <span className="w-2 h-2 rounded-full bg-emerald-600 animate-ping inline-block" />
+                  )}
                 </button>
                 <button
                   type="button"
-                  onClick={() => setStatusTab('RESOLVED')}
-                  className={`px-3 py-1.5 rounded-lg transition-all ${statusTab === 'RESOLVED' ? 'bg-[#22C55E] text-white shadow-xs' : 'text-slate-600 hover:text-[#111827]'}`}
+                  onClick={() => setStatusTab('VERIFIED')}
+                  className={`px-3 py-1.5 rounded-lg transition-all ${statusTab === 'VERIFIED' ? 'bg-[#22C55E] text-white shadow-xs' : 'text-slate-600 hover:text-[#111827]'}`}
                 >
-                  Resolved ({complaints.filter(c => String(c.status) === 'RESOLVED').length})
+                  Verified ({complaints.filter(c => String(c.status) === 'VERIFIED').length})
                 </button>
               </div>
 

@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../../hooks/useAuth';
 import { Button } from './Button';
 import { UserRole } from '../../types';
@@ -11,8 +12,10 @@ interface TopHeaderProps {
 }
 
 export const TopHeader: React.FC<TopHeaderProps> = ({ onSearchChange }) => {
-  const { user, role, logout } = useAuth();
+  const queryClient = useQueryClient();
+  const { user, role, logout, loginDemo } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -25,6 +28,19 @@ export const TopHeader: React.FC<TopHeaderProps> = ({ onSearchChange }) => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  const handleSwitchRole = async (targetRole: 'citizen' | 'crew' | 'admin') => {
+    try {
+      setDropdownOpen(false);
+      await loginDemo(targetRole);
+      queryClient.resetQueries();
+      if (targetRole === 'admin') navigate('/admin');
+      else if (targetRole === 'crew') navigate('/crew');
+      else navigate('/citizen');
+    } catch (err) {
+      alert("Role switch failed: " + err);
+    }
+  };
 
   const getNavLinks = () => {
     if (role === UserRole.ADMIN) {
@@ -69,48 +85,75 @@ export const TopHeader: React.FC<TopHeaderProps> = ({ onSearchChange }) => {
           </Link>
         </div>
 
-        {/* Center: Top Navigation Links */}
-        <nav className="hidden md:flex items-center gap-1.5 bg-[#FFFDF7] p-1.5 rounded-2xl border border-[#D9F0FF]">
-          {navLinks.map((link) => {
-            const isActive = location.pathname === link.path;
-            return (
-              <Link
-                key={link.path}
-                to={link.path}
-                className={`px-4 py-2 text-xs font-bold rounded-xl transition-all ${
-                  isActive
-                    ? 'bg-[#89B9E6] text-[#111827] shadow-xs'
-                    : 'text-slate-600 hover:text-[#111827] hover:bg-[#D9F0FF]'
-                }`}
-              >
-                {link.label}
-              </Link>
-            );
-          })}
-        </nav>
+        {/* Center: Navigation Links + Quick Demo One-Click Role Switcher */}
+        <div className="flex items-center gap-3">
+          <nav className="hidden md:flex items-center gap-1.5 bg-[#FFFDF7] p-1.5 rounded-2xl border border-[#D9F0FF]">
+            {navLinks.map((link) => {
+              const isActive = location.pathname === link.path;
+              return (
+                <Link
+                  key={link.path}
+                  to={link.path}
+                  className={`px-3 py-1.5 text-xs font-bold rounded-xl transition-all ${
+                    isActive
+                      ? 'bg-[#89B9E6] text-[#111827] shadow-xs'
+                      : 'text-slate-600 hover:text-[#111827] hover:bg-[#D9F0FF]'
+                  }`}
+                >
+                  {link.label}
+                </Link>
+              );
+            })}
+          </nav>
+
+          <div className="hidden lg:flex items-center gap-1.5 bg-[#FFFDF7] p-1.5 rounded-2xl border border-[#89B9E6]">
+            <span className="text-[10px] font-black uppercase text-slate-500 px-1.5">Quick Access:</span>
+            <button
+              type="button"
+              onClick={() => handleSwitchRole('citizen')}
+              className={`px-2.5 py-1 text-xs font-bold rounded-xl transition-all cursor-pointer ${
+                role === 'citizen' ? 'bg-[#C7DFA3] text-[#111827] shadow-xs font-black' : 'text-slate-600 hover:bg-[#D9F0FF]'
+              }`}
+            >
+              Citizen
+            </button>
+            <button
+              type="button"
+              onClick={() => handleSwitchRole('crew')}
+              className={`px-2.5 py-1 text-xs font-bold rounded-xl transition-all cursor-pointer ${
+                role === 'crew' ? 'bg-[#89B9E6] text-[#111827] shadow-xs font-black' : 'text-slate-600 hover:bg-[#D9F0FF]'
+              }`}
+            >
+              Crew
+            </button>
+            <button
+              type="button"
+              onClick={() => handleSwitchRole('admin')}
+              className={`px-2.5 py-1 text-xs font-bold rounded-xl transition-all cursor-pointer ${
+                role === 'admin' ? 'bg-[#31465A] text-white shadow-xs font-black' : 'text-slate-600 hover:bg-[#D9F0FF]'
+              }`}
+            >
+              Admin
+            </button>
+          </div>
+        </div>
+
 
         {/* Right: Notifications + User Avatar + Profile Dropdown */}
         <div className="flex items-center gap-3">
           {onSearchChange && (
-            <div className="relative hidden lg:block">
+            <div className="relative hidden xl:block">
               <input
                 type="text"
                 onChange={(e) => onSearchChange(e.target.value)}
                 placeholder="Search complaints..."
-                className="pl-8 pr-3 py-1.5 bg-[#FFFDF7] border border-[#89B9E6] rounded-xl text-xs font-semibold text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#89B9E6] w-48"
+                className="pl-8 pr-3 py-1.5 bg-[#FFFDF7] border border-[#89B9E6] rounded-xl text-xs font-semibold text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#89B9E6] w-44"
               />
               <svg className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </div>
           )}
-
-          <button className="p-2.5 rounded-xl bg-[#FFFDF7] border border-[#D9F0FF] text-slate-600 hover:text-[#111827] hover:bg-[#D9F0FF] transition-all relative">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-            </svg>
-            <span className="w-2 h-2 rounded-full bg-rose-500 absolute top-2 right-2 border-2 border-white"></span>
-          </button>
 
           {user ? (
             <div className="relative" ref={dropdownRef}>
@@ -131,7 +174,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({ onSearchChange }) => {
               </button>
 
               {dropdownOpen && (
-                <div className="absolute right-0 mt-2 w-56 bg-white rounded-2xl border border-[#89B9E6] shadow-lg py-2 z-50 animate-in fade-in slide-in-from-top-2">
+                <div className="absolute right-0 mt-2 w-60 bg-white rounded-2xl border border-[#89B9E6] shadow-lg py-2 z-50 animate-in fade-in slide-in-from-top-2">
                   <div className="px-4 py-2 border-b border-[#D9F0FF]">
                     <p className="text-xs font-bold text-[#111827]">{user.name}</p>
                     <p className="text-[10px] text-slate-500">{user.email}</p>
@@ -139,12 +182,48 @@ export const TopHeader: React.FC<TopHeaderProps> = ({ onSearchChange }) => {
                       Role: {role || 'Citizen'}
                     </span>
                   </div>
+
+                  {/* Demo One-Click Role Switcher Options inside Profile Menu */}
+                  <div className="py-2 border-b border-[#D9F0FF] px-2 space-y-1">
+                    <p className="text-[10px] font-black uppercase text-slate-400 px-2 mb-1">Switch Portal (1-Click):</p>
+                    <button
+                      onClick={() => handleSwitchRole('citizen')}
+                      className={`w-full text-left px-3 py-1.5 text-xs font-bold rounded-lg flex items-center justify-between cursor-pointer ${
+                        role === 'citizen' ? 'bg-[#C7DFA3] text-[#111827]' : 'hover:bg-slate-100 text-slate-700'
+                      }`}
+                    >
+                      <span>Citizen Portal</span>
+                      {role === 'citizen' && <span className="text-[10px] font-black">Active</span>}
+                    </button>
+                    <button
+                      onClick={() => handleSwitchRole('crew')}
+                      className={`w-full text-left px-3 py-1.5 text-xs font-bold rounded-lg flex items-center justify-between cursor-pointer ${
+                        role === 'crew' ? 'bg-[#89B9E6] text-[#111827]' : 'hover:bg-slate-100 text-slate-700'
+                      }`}
+                    >
+                      <span>Crew Dashboard</span>
+                      {role === 'crew' && <span className="text-[10px] font-black">Active</span>}
+                    </button>
+                    <button
+                      onClick={() => handleSwitchRole('admin')}
+                      className={`w-full text-left px-3 py-1.5 text-xs font-bold rounded-lg flex items-center justify-between cursor-pointer ${
+                        role === 'admin' ? 'bg-[#31465A] text-white' : 'hover:bg-slate-100 text-slate-700'
+                      }`}
+                    >
+                      <span>Admin Dashboard</span>
+                      {role === 'admin' && <span className="text-[10px] font-black">Active</span>}
+                    </button>
+                  </div>
+
                   <div className="py-1">
                     <button
                       onClick={() => { setDropdownOpen(false); logout(); }}
                       className="w-full text-left px-4 py-2 text-xs font-bold text-rose-600 hover:bg-rose-50 flex items-center gap-2 cursor-pointer"
                     >
-                      <span>🚪</span> Sign Out
+                      <svg className="w-4 h-4 text-rose-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                      </svg>
+                      <span>Sign Out</span>
                     </button>
                   </div>
                 </div>
@@ -160,3 +239,4 @@ export const TopHeader: React.FC<TopHeaderProps> = ({ onSearchChange }) => {
     </header>
   );
 };
+
