@@ -17,7 +17,9 @@ def get_mobilenet_model():
             _model = "FALLBACK"
     return _model
 
-def analyze_waste_image(image_input: str | bytes) -> dict:
+from typing import Union
+
+def analyze_waste_image(image_input: Union[str, bytes]) -> dict:
     """
     Analyzes an image (Base64 string or raw bytes) using MobileNetV2.
     Returns:

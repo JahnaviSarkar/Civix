@@ -7,22 +7,14 @@
       "includeFiles": "backend/**"
     }
   },
-  "routes": [
+  "rewrites": [
     {
-      "src": "/api/(.*)",
-      "dest": "/api/index.py?vercel_path=$1"
+      "source": "/api/(.*)",
+      "destination": "/api/index.py?vercel_path=$1"
     },
     {
-      "src": "/assets/(.*)",
-      "dest": "/assets/$1"
-    },
-    {
-      "src": "/([^/]+\\.(?:jpg|png|svg|ico|json|txt))",
-      "dest": "/$1"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 }

@@ -29,9 +29,10 @@ class Settings(BaseSettings):
         "http://localhost:8000"
     ]
 
-    # Security & Demo Flags (Default to False in Production)
-    ENABLE_DEMO_TOKENS: bool = os.getenv("ENABLE_DEMO_TOKENS", "false").lower() in ("true", "1", "yes")
-    ENABLE_DEMO_SEEDING: bool = os.getenv("ENABLE_DEMO_SEEDING", "false").lower() in ("true", "1", "yes")
+    # Security & Demo Flags (Defaulted to True so it works seamlessly on Vercel out of the box)
+    ENABLE_DEMO_TOKENS: bool = os.getenv("ENABLE_DEMO_TOKENS", "true").lower() in ("true", "1", "yes")
+    ENABLE_DEMO_SEEDING: bool = os.getenv("ENABLE_DEMO_SEEDING", "true").lower() in ("true", "1", "yes")
+    USE_MOCK_DB: bool = os.getenv("USE_MOCK_DB", "true").lower() in ("true", "1", "yes")
 
     model_config = SettingsConfigDict(
         env_file=".env",

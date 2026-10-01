@@ -102,11 +102,11 @@ app.add_middleware(
 
 @app.middleware("http")
 async def vercel_path_rewrite(request: Request, call_next):
-    # Vercel overwrites PATH_INFO to /api/index.py. Fix it using query param.
-    if request.url.path in ["/api/index.py", "/index.py"]:
-        path_param = request.query_params.get("vercel_path")
-        if path_param:
-            request.scope["path"] = f"/api/{path_param}"
+    # Vercel's ASGI bridge overrides PATH_INFO with internal execution paths.
+    # We explicitly pass the intended path via the vercel_path query param.
+    path_param = request.query_params.get("vercel_path")
+    if path_param:
+        request.scope["path"] = f"/api/{path_param}"
     return await call_next(request)
 
 # Mount Routers (with /api prefix)
