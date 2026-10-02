@@ -43,6 +43,12 @@ def get_firebase_app():
         except Exception as e:
             logger.error(f"Firebase Admin Initialization Error: {e}")
 
+        if not firebase_admin._apps:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Authentication service unavailable: Firebase Admin SDK failed to initialize."
+            )
+
     _firebase_initialized = True
 
 security = HTTPBearer(auto_error=True)
