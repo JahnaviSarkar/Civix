@@ -42,16 +42,7 @@ def get_firebase_app():
                     logger.info(f"Firebase Admin App initialized successfully. [CREDENTIAL SOURCE: Default Project Options -> {settings.FIREBASE_PROJECT_ID}]")
         except Exception as e:
             logger.error(f"Firebase Admin Initialization Error: {e}")
-            raise HTTPException(
-                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                detail=f"Authentication service configuration failure: {str(e)}"
-            )
 
-    if not firebase_admin._apps:
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Authentication service unavailable: Firebase Admin SDK is not initialized"
-        )
     _firebase_initialized = True
 
 security = HTTPBearer(auto_error=True)
@@ -96,6 +87,8 @@ def get_current_user(
 
     if not firebase_uid:
         try:
+            if not firebase_admin._apps:
+                raise ValueError("Firebase Admin SDK is not initialized. Cannot verify real tokens.")
             decoded_token = auth.verify_id_token(raw_token)
             firebase_uid = decoded_token.get("uid")
             email = decoded_token.get("email", "")
