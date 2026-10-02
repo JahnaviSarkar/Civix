@@ -167,13 +167,21 @@ export const AdminDashboard: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-[#FFFDF7] flex flex-col font-sans">
-      {/* Top Header Navigation (No Sidebar) */}
-      <TopHeader onSearchChange={setSearchQuery} />
+    <div 
+      className="min-h-screen flex flex-col font-sans relative bg-cover bg-center bg-no-repeat bg-fixed"
+      style={{ backgroundImage: "url('/admin_dashboard_bg.jpg')" }}
+    >
+      {/* Subtle overlay for legibility */}
+      <div className="fixed inset-0 bg-white/70 backdrop-blur-sm pointer-events-none z-0"></div>
 
-      <main className="flex-1 p-6 md:p-8 max-w-7xl mx-auto w-full space-y-6">
-        
-        {/* Page Welcome Header */}
+      {/* Content wrapper */}
+      <div className="relative z-10 flex flex-col flex-1">
+        {/* Top Header Navigation (No Sidebar) */}
+        <TopHeader onSearchChange={setSearchQuery} />
+
+        <main className="flex-1 p-6 md:p-8 max-w-7xl mx-auto w-full space-y-6">
+          
+          {/* Page Welcome Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-[#D9F0FF] shadow-xs">
           <div>
             <h1 className="text-2xl font-black text-[#111827]">Welcome back, Admin!</h1>
@@ -462,6 +470,7 @@ export const AdminDashboard: React.FC = () => {
         </div>
 
       </main>
+      </div>
     </div>
   );
 };

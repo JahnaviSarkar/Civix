@@ -1,9 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { useQueryClient } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { Button } from './Button';
-import { UserRole } from '../../types';
 
 interface TopHeaderProps {
   activeTab?: string;
@@ -12,10 +10,7 @@ interface TopHeaderProps {
 }
 
 export const TopHeader: React.FC<TopHeaderProps> = ({ onSearchChange }) => {
-  const queryClient = useQueryClient();
-  const { user, role, logout, loginDemo } = useAuth();
-  const location = useLocation();
-  const navigate = useNavigate();
+  const { user, role, logout } = useAuth();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -28,40 +23,6 @@ export const TopHeader: React.FC<TopHeaderProps> = ({ onSearchChange }) => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
-
-  const handleSwitchRole = async (targetRole: 'citizen' | 'crew' | 'admin') => {
-    try {
-      setDropdownOpen(false);
-      await loginDemo(targetRole);
-      queryClient.resetQueries();
-      if (targetRole === 'admin') navigate('/admin');
-      else if (targetRole === 'crew') navigate('/crew');
-      else navigate('/citizen');
-    } catch (err) {
-      alert("Role switch failed: " + err);
-    }
-  };
-
-  const getNavLinks = () => {
-    if (role === UserRole.ADMIN) {
-      return [
-        { label: 'Dashboard', path: '/admin' },
-        { label: 'Citizen Portal', path: '/citizen' },
-        { label: 'Crew Tasks', path: '/crew' },
-      ];
-    } else if (role === UserRole.CREW) {
-      return [
-        { label: 'Dashboard', path: '/crew' },
-        { label: 'Citizen View', path: '/citizen' },
-      ];
-    }
-    return [
-      { label: 'Dashboard', path: '/citizen' },
-      { label: 'Portals', path: '/login' },
-    ];
-  };
-
-  const navLinks = getNavLinks();
 
   return (
     <header className="bg-white border-b border-[#D9F0FF] sticky top-0 z-50 shadow-xs">
@@ -85,59 +46,9 @@ export const TopHeader: React.FC<TopHeaderProps> = ({ onSearchChange }) => {
           </Link>
         </div>
 
-        {/* Center: Navigation Links + Quick Demo One-Click Role Switcher */}
+        {/* Center: Empty to maintain space if needed, or removed to let flex-between handle layout */}
         <div className="flex items-center gap-3">
-          <nav className="hidden md:flex items-center gap-1.5 bg-[#FFFDF7] p-1.5 rounded-2xl border border-[#D9F0FF]">
-            {navLinks.map((link) => {
-              const isActive = location.pathname === link.path;
-              return (
-                <Link
-                  key={link.path}
-                  to={link.path}
-                  className={`px-3 py-1.5 text-xs font-bold rounded-xl transition-all ${
-                    isActive
-                      ? 'bg-[#89B9E6] text-[#111827] shadow-xs'
-                      : 'text-slate-600 hover:text-[#111827] hover:bg-[#D9F0FF]'
-                  }`}
-                >
-                  {link.label}
-                </Link>
-              );
-            })}
-          </nav>
-
-          <div className="hidden lg:flex items-center gap-1.5 bg-[#FFFDF7] p-1.5 rounded-2xl border border-[#89B9E6]">
-            <span className="text-[10px] font-black uppercase text-slate-500 px-1.5">Quick Access:</span>
-            <button
-              type="button"
-              onClick={() => handleSwitchRole('citizen')}
-              className={`px-2.5 py-1 text-xs font-bold rounded-xl transition-all cursor-pointer ${
-                role === 'citizen' ? 'bg-[#C7DFA3] text-[#111827] shadow-xs font-black' : 'text-slate-600 hover:bg-[#D9F0FF]'
-              }`}
-            >
-              Citizen
-            </button>
-            <button
-              type="button"
-              onClick={() => handleSwitchRole('crew')}
-              className={`px-2.5 py-1 text-xs font-bold rounded-xl transition-all cursor-pointer ${
-                role === 'crew' ? 'bg-[#89B9E6] text-[#111827] shadow-xs font-black' : 'text-slate-600 hover:bg-[#D9F0FF]'
-              }`}
-            >
-              Crew
-            </button>
-            <button
-              type="button"
-              onClick={() => handleSwitchRole('admin')}
-              className={`px-2.5 py-1 text-xs font-bold rounded-xl transition-all cursor-pointer ${
-                role === 'admin' ? 'bg-[#31465A] text-white shadow-xs font-black' : 'text-slate-600 hover:bg-[#D9F0FF]'
-              }`}
-            >
-              Admin
-            </button>
-          </div>
         </div>
-
 
         {/* Right: Notifications + User Avatar + Profile Dropdown */}
         <div className="flex items-center gap-3">
@@ -181,38 +92,6 @@ export const TopHeader: React.FC<TopHeaderProps> = ({ onSearchChange }) => {
                     <span className="inline-block mt-1 px-2 py-0.5 bg-[#C7DFA3] text-[#111827] text-[10px] font-black uppercase rounded-md">
                       Role: {role || 'Citizen'}
                     </span>
-                  </div>
-
-                  {/* Demo One-Click Role Switcher Options inside Profile Menu */}
-                  <div className="py-2 border-b border-[#D9F0FF] px-2 space-y-1">
-                    <p className="text-[10px] font-black uppercase text-slate-400 px-2 mb-1">Switch Portal (1-Click):</p>
-                    <button
-                      onClick={() => handleSwitchRole('citizen')}
-                      className={`w-full text-left px-3 py-1.5 text-xs font-bold rounded-lg flex items-center justify-between cursor-pointer ${
-                        role === 'citizen' ? 'bg-[#C7DFA3] text-[#111827]' : 'hover:bg-slate-100 text-slate-700'
-                      }`}
-                    >
-                      <span>Citizen Portal</span>
-                      {role === 'citizen' && <span className="text-[10px] font-black">Active</span>}
-                    </button>
-                    <button
-                      onClick={() => handleSwitchRole('crew')}
-                      className={`w-full text-left px-3 py-1.5 text-xs font-bold rounded-lg flex items-center justify-between cursor-pointer ${
-                        role === 'crew' ? 'bg-[#89B9E6] text-[#111827]' : 'hover:bg-slate-100 text-slate-700'
-                      }`}
-                    >
-                      <span>Crew Dashboard</span>
-                      {role === 'crew' && <span className="text-[10px] font-black">Active</span>}
-                    </button>
-                    <button
-                      onClick={() => handleSwitchRole('admin')}
-                      className={`w-full text-left px-3 py-1.5 text-xs font-bold rounded-lg flex items-center justify-between cursor-pointer ${
-                        role === 'admin' ? 'bg-[#31465A] text-white' : 'hover:bg-slate-100 text-slate-700'
-                      }`}
-                    >
-                      <span>Admin Dashboard</span>
-                      {role === 'admin' && <span className="text-[10px] font-black">Active</span>}
-                    </button>
                   </div>
 
                   <div className="py-1">

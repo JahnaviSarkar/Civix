@@ -88,12 +88,20 @@ export const CitizenDashboard: React.FC = () => {
   const verifiedCount = myComplaints.filter((c) => String(c.status) === 'VERIFIED').length;
 
   return (
-    <div className="min-h-screen bg-[#FFFDF7] flex flex-col font-sans">
-      <TopHeader />
+    <div 
+      className="min-h-screen flex flex-col font-sans relative bg-cover bg-center bg-no-repeat bg-fixed"
+      style={{ backgroundImage: "url('/admin_dashboard_bg.jpg')" }}
+    >
+      {/* Subtle overlay for legibility */}
+      <div className="fixed inset-0 bg-white/70 backdrop-blur-sm pointer-events-none z-0"></div>
 
-      <main className="flex-1 p-6 md:p-8 max-w-7xl mx-auto w-full space-y-6">
-        
-        <div className="bg-white p-6 rounded-3xl border border-[#D9F0FF] shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+      {/* Content wrapper */}
+      <div className="relative z-10 flex flex-col flex-1">
+        <TopHeader />
+
+        <main className="flex-1 p-6 md:p-8 max-w-7xl mx-auto w-full space-y-6">
+          
+          <div className="bg-white p-6 rounded-3xl border border-[#D9F0FF] shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-black text-[#111827]">Welcome back, {user?.name || 'Citizen'}!</h1>
             <p className="text-xs text-slate-500 font-semibold mt-1">Together for a cleaner, healthier city.</p>
@@ -358,6 +366,7 @@ export const CitizenDashboard: React.FC = () => {
         </div>
 
       </main>
+      </div>
     </div>
   );
 };
