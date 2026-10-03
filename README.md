@@ -1,10 +1,10 @@
-# CIVIX — Smart Waste Management Platform
+﻿# CIVIX — Smart Waste Management Platform
 
 Hi, I'm Jahnavi — I built CIVIX as a full-stack project to explore how a role-based civic platform could connect citizens, sanitation crews, and municipal admins around a single shared workflow: reporting a problem, routing it to the right person, and verifying it actually got fixed.
 
 It's a cloud-based municipal governance web app for urban waste monitoring, citizen reporting, crew task routing, and AI-assisted severity scoring — with three dedicated portals, each built around what that specific role actually needs to do.
 
-**Connect with me:** [LinkedIn](your-linkedin-url-here)
+**Connect with me:** [LinkedIn](https://www.linkedin.com/in/jahnavi-sarkar/)
 
 ---
 
