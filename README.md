@@ -1,4 +1,4 @@
-# CIVIX — Smart Waste Management Platform
+﻿# CIVIX — Smart Waste Management Platform
 
 Hi, I'm Jahnavi — I built CIVIX as a full-stack project to explore how a role-based civic platform could connect citizens, sanitation crews, and municipal admins around a single shared workflow: reporting a problem, routing it to the right person, and verifying it actually got fixed.
 
@@ -45,26 +45,26 @@ It's a cloud-based municipal governance web app for urban waste monitoring, citi
 
 ## Project Architecture
 
-smart-waste-app/
-├── backend/
-│ ├── app/
-│ │ ├── main.py # FastAPI entrypoint & route registration
-│ │ ├── config.py # Environment & settings management
-│ │ ├── dependencies/ # Auth & Firebase Admin initialization
-│ │ ├── routers/ # API route handlers (citizen, crew, admin)
-│ │ ├── services/ # Firestore repository layer
-│ │ └── schemas/ # Pydantic request/response models
-│ ├── ai_model/ # TensorFlow severity-scoring model
-│ └── tests/ # Pytest suite
-├── frontend/
-│ └── app/
-│ ├── src/
-│ │ ├── pages/ # LoginPage, CitizenDashboard, CrewDashboard, AdminDashboard
-│ │ ├── components/ # Shared UI components
-│ │ ├── hooks/ # React Query data hooks
-│ │ └── api/ # Typed API client layer
-└── firebase/
-└── firestore.rules # Firestore security rules
+## Project Architecture
+
+**Backend** (`backend/app/`)
+- `main.py` — FastAPI entrypoint & route registration
+- `config.py` — Environment & settings management
+- `dependencies/` — Auth & Firebase Admin initialization
+- `routers/` — API route handlers (citizen, crew, admin)
+- `services/` — Firestore repository layer
+- `schemas/` — Pydantic request/response models
+- `ai_model/` — TensorFlow severity-scoring model
+- `tests/` — Pytest suite
+
+**Frontend** (`frontend/app/src/`)
+- `pages/` — LoginPage, CitizenDashboard, CrewDashboard, AdminDashboard
+- `components/` — Shared UI components
+- `hooks/` — React Query data hooks
+- `api/` — Typed API client layer
+
+**Firebase**
+- `firebase/firestore.rules` — Firestore security rules
 
 
 ---
