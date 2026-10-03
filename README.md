@@ -4,7 +4,7 @@ Hi, I'm Jahnavi — I built CIVIX as a full-stack project to explore how a role-
 
 It's a cloud-based municipal governance web app for urban waste monitoring, citizen reporting, crew task routing, and AI-assisted severity scoring — with three dedicated portals, each built around what that specific role actually needs to do.
 
-**Connect with me:** [LinkedIn](https://www.linkedin.com/in/jahnavi-sarkar/)
+**Connect with me:** [LinkedIn](your-linkedin-url-here)
 
 ---
 
